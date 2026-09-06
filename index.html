@@ -35,6 +35,17 @@
       100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
     }
 
+    /* ANIMATION DU SCORE QUI CHANGE (FLASH) */
+    @keyframes scoreFlash {
+      0% { color: var(--accent-gold); transform: scale(1); }
+      50% { color: #ffffff; text-shadow: 0 0 15px var(--accent-gold); transform: scale(1.35); }
+      100% { color: var(--accent-gold); transform: scale(1); }
+    }
+
+    .score-updated {
+      animation: scoreFlash 1.2s ease-in-out;
+    }
+
     /* CARTE PROCHAIN MATCH & COMPTE À REBOURS */
     .next-game-card {
       background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
@@ -91,10 +102,18 @@
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
     }
 
-    .next-team-name {
+    .next-team-link {
+      color: var(--text-main);
+      text-decoration: none;
       font-size: 0.95rem;
       font-weight: 700;
       line-height: 1.2;
+      transition: color 0.2s;
+    }
+
+    .next-team-link:hover {
+      color: var(--accent-blue);
+      text-decoration: underline;
     }
 
     .next-vs {
@@ -191,7 +210,7 @@
     .team-info { display: flex; flex-direction: column; }
     .team-link { color: var(--text-main); text-decoration: none; transition: color 0.2s; }
     .team-link:hover { color: var(--accent-blue); text-decoration: underline; }
-    .score { font-size: 1.3rem; font-weight: 800; color: var(--accent-gold); }
+    .score { font-size: 1.3rem; font-weight: 800; color: var(--accent-gold); display: inline-block; transition: all 0.3s; }
     .vs { color: var(--text-muted); font-size: 0.75rem; font-weight: 700; }
 
     .game-footer { border-top: 1px dashed var(--border-color); padding-top: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-muted); }
@@ -214,13 +233,17 @@
       </div>
       <div class="next-game-teams">
         <div class="next-team away">
-          <img id="nextAwayLogo" class="next-team-logo" src="" alt="">
-          <span id="nextAwayName" class="next-team-name"></span>
+          <a id="nextAwayLink" href="#" target="_blank">
+            <img id="nextAwayLogo" class="next-team-logo" src="" alt="">
+          </a>
+          <a id="nextAwayNameLink" href="#" target="_blank" class="next-team-link"></a>
         </div>
         <span class="next-vs">@</span>
         <div class="next-team home">
-          <img id="nextHomeLogo" class="next-team-logo" src="" alt="">
-          <span id="nextHomeName" class="next-team-name"></span>
+          <a id="nextHomeLink" href="#" target="_blank">
+            <img id="nextHomeLogo" class="next-team-logo" src="" alt="">
+          </a>
+          <a id="nextHomeNameLink" href="#" target="_blank" class="next-team-link"></a>
         </div>
       </div>
       <div class="countdown-timer" id="countdownTimer">Chargement du compte à rebours...</div>
@@ -247,6 +270,7 @@
 
   <script>
     let countdownInterval = null;
+    let previousScores = {};
 
     function getTeamLogoUrl(teamObj, league) {
       if (teamObj) {
@@ -316,11 +340,9 @@
       return owners;
     }
 
-    // AFFICHER LA CARTE PROCHAIN MATCH ET LANCER LE COMPTE À REBOURS DYNAMIQUE
+    // AFFICHER LA CARTE PROCHAIN MATCH AVEC LIENS
     function renderNextGameCard() {
       const now = new Date();
-      
-      // Trouver le premier match qui n'est pas encore commencé
       const nextGame = allGames.find(g => g.rawDate > now && g.status === 'pre');
 
       if (!nextGame) {
@@ -339,14 +361,22 @@
         cardEl.classList.remove('habs-next');
       }
 
+      const awayUrl = getStatsUrl(nextGame.awayTeamObj, nextGame.league);
+      const homeUrl = getStatsUrl(nextGame.homeTeamObj, nextGame.league);
+
       document.getElementById('nextGameBadge').innerText = `⚡ PROCHAIN MATCH (${nextGame.league})`;
       document.getElementById('nextGameChannel').innerText = `Diffusion : ${nextGame.channel}`;
-      document.getElementById('nextAwayName').innerText = nextGame.awayTeam;
+      
+      document.getElementById('nextAwayNameLink').innerText = nextGame.awayTeam;
+      document.getElementById('nextAwayNameLink').href = awayUrl;
+      document.getElementById('nextAwayLink').href = awayUrl;
       document.getElementById('nextAwayLogo').src = nextGame.awayLogo;
-      document.getElementById('nextHomeName').innerText = nextGame.homeTeam;
+
+      document.getElementById('nextHomeNameLink').innerText = nextGame.homeTeam;
+      document.getElementById('nextHomeNameLink').href = homeUrl;
+      document.getElementById('nextHomeLink').href = homeUrl;
       document.getElementById('nextHomeLogo').src = nextGame.homeLogo;
 
-      // Démarrage du compte à rebours dynamique
       if (countdownInterval) clearInterval(countdownInterval);
 
       function updateCountdown() {
@@ -461,6 +491,7 @@
       `).join('');
     }
 
+    // AFFICHAGE DES CARTES AVEC ANIMATION DE CLIGNOTEMENT SUR CHANGEMENT DE SCORE
     function renderGames(searchText = '') {
       const container = document.getElementById('gamesContainer');
       container.innerHTML = '';
@@ -502,6 +533,15 @@
         const awayUrl = getStatsUrl(g.awayTeamObj, g.league);
         const homeUrl = getStatsUrl(g.homeTeamObj, g.league);
 
+        // Détection de changement de score pour déclencher l'animation
+        const awayScoreKey = `${g.id}_away`;
+        const homeScoreKey = `${g.id}_home`;
+        const awayScoreChanged = previousScores[awayScoreKey] !== undefined && previousScores[awayScoreKey] !== g.awayScore;
+        const homeScoreChanged = previousScores[homeScoreKey] !== undefined && previousScores[homeScoreKey] !== g.homeScore;
+
+        previousScores[awayScoreKey] = g.awayScore;
+        previousScores[homeScoreKey] = g.homeScore;
+
         let cardStyleClass = 'nfl-card';
         if (isPoolWin) {
           cardStyleClass = 'pool-win';
@@ -528,7 +568,7 @@
               </a>
               <div class="team-info">
                 <a href="${awayUrl}" target="_blank" class="team-link">${g.awayTeam}</a>
-                ${g.status !== 'pre' ? `<span class="score">${g.awayScore}</span>` : ''}
+                ${g.status !== 'pre' ? `<span class="score ${awayScoreChanged ? 'score-updated' : ''}">${g.awayScore}</span>` : ''}
               </div>
             </div>
             <span class="vs">@</span>
@@ -538,7 +578,7 @@
               </a>
               <div class="team-info">
                 <a href="${homeUrl}" target="_blank" class="team-link">${g.homeTeam}</a>
-                ${g.status !== 'pre' ? `<span class="score">${g.homeScore}</span>` : ''}
+                ${g.status !== 'pre' ? `<span class="score ${homeScoreChanged ? 'score-updated' : ''}">${g.homeScore}</span>` : ''}
               </div>
             </div>
           </div>
