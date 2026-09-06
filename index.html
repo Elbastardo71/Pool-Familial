@@ -34,7 +34,8 @@
     .leaderboard { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
     .leader-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
     .leader-name { font-weight: 700; font-size: 1rem; }
-    .leader-teams { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+    .leader-teams { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .leader-team-logo { width: 18px; height: 18px; object-fit: contain; }
     .leader-score { font-size: 1.4rem; font-weight: 800; color: var(--accent-gold); text-align: right; }
 
     /* CONTROLS & FILTERS */
@@ -55,11 +56,13 @@
     .badge-owner { background-color: rgba(251, 191, 36, 0.15); color: var(--accent-gold); margin-left: 4px; }
     .live-tag { background-color: var(--accent-red); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; }
 
-    .game-body { display: flex; justify-content: space-between; align-items: center; font-size: 0.92rem; font-weight: 600; }
-    .team { display: flex; flex-direction: column; width: 42%; }
-    .team.away { text-align: left; }
-    .team.home { text-align: right; }
-    .score { font-size: 1.15rem; font-weight: 800; color: var(--accent-gold); }
+    .game-body { display: flex; justify-content: space-between; align-items: center; font-size: 0.92rem; font-weight: 600; padding: 4px 0; }
+    .team { display: flex; align-items: center; gap: 8px; width: 42%; }
+    .team.away { justify-content: flex-start; text-align: left; }
+    .team.home { justify-content: flex-end; text-align: right; flex-row-reverse: row-reverse; }
+    .team-logo { width: 32px; height: 32px; object-fit: contain; flex-shrink: 0; }
+    .team-info { display: flex; flex-direction: column; }
+    .score { font-size: 1.25rem; font-weight: 800; color: var(--accent-gold); }
     .vs { color: var(--text-muted); font-size: 0.75rem; }
 
     .game-footer { border-top: 1px dashed var(--border-color); padding-top: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-muted); }
@@ -92,17 +95,40 @@
   <main class="games-list" id="gamesContainer"></main>
 
   <script>
-    // 1. MISE À JOUR DES ÉQUIPES DU POOL (NFL)
+    // 1. CONFIGURATION ET LOGOS DES ÉQUIPES DU POOL (NFL)
     const members = {
-      "Moi": { teams: ["Los Angeles Rams", "Buffalo Bills", "Baltimore Ravens", "Seattle Seahawks"] },
-      "Conjointe": { teams: ["Cleveland Browns", "Jacksonville Jaguars", "Detroit Lions", "Arizona Cardinals"] },
-      "Fille": { teams: ["Buffalo Bills", "Kansas City Chiefs", "Los Angeles Rams", "Dallas Cowboys"] }
+      "Moi": { 
+        teams: ["Los Angeles Rams", "Buffalo Bills", "Baltimore Ravens", "Seattle Seahawks"],
+        logos: [
+          "https://a.espncdn.com/i/teamlogos/nfl/500/lar.png",
+          "https://a.espncdn.com/i/teamlogos/nfl/500/buf.png",
+          "https://a.espncdn.com/i/teamlogos/nfl/500/bal.png",
+          "https://a.espncdn.com/i/teamlogos/nfl/500/sea.png"
+        ]
+      },
+      "Conjointe": { 
+        teams: ["Cleveland Browns", "Jacksonville Jaguars", "Detroit Lions", "Arizona Cardinals"],
+        logos: [
+          "https://a.espncdn.com/i/teamlogos/nfl/500/cle.png",
+          "https://a.espncdn.com/i/teamlogos/nfl/500/jax.png",
+          "https://a.espncdn.com/i/teamlogos/nfl/500/det.png",
+          "https://a.espncdn.com/i/teamlogos/nfl/500/ari.png"
+        ]
+      },
+      "Fille": { 
+        teams: ["Buffalo Bills", "Kansas City Chiefs", "Los Angeles Rams", "Dallas Cowboys"],
+        logos: [
+          "https://a.espncdn.com/i/teamlogos/nfl/500/buf.png",
+          "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png",
+          "https://a.espncdn.com/i/teamlogos/nfl/500/lar.png",
+          "https://a.espncdn.com/i/teamlogos/nfl/500/dal.png"
+        ]
+      }
     };
 
     let allGames = [];
     let currentFilter = 'all';
 
-    // Retourne la liste de tous les propriétaires d'une équipe donnée
     function getTeamOwners(teamName) {
       const owners = [];
       for (const [owner, data] of Object.entries(members)) {
@@ -113,14 +139,12 @@
       return owners;
     }
 
-    // 2. RÉCUPÉRATION ET ENTREMÊLEMENT CHRONOLOGIQUE DES SÉRIES DE MATCHS
+    // 2. RÉCUPÉRATION ET EXTRACTION DES DONNÉES AVEC LOGOS
     async function fetchLiveSchedules() {
       try {
-        // NFL Feed
         const nflRes = await fetch('https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=20260901-20270120&limit=500');
         const nflData = await nflRes.json();
         
-        // LNH Feed (Saison complète des Canadiens de Montréal)
         const nhlRes = await fetch('https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/teams/mtl/schedule?season=2027');
         const nhlData = await nhlRes.json();
 
@@ -136,7 +160,9 @@
             rawDate: rawDate,
             dateStr: rawDate.toLocaleDateString('fr-CA', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
             homeTeam: home.team.displayName,
+            homeLogo: home.team.logo || 'https://a.espncdn.com/i/teamlogos/default-team-logo.png',
             awayTeam: away.team.displayName,
+            awayLogo: away.team.logo || 'https://a.espncdn.com/i/teamlogos/default-team-logo.png',
             homeScore: home.score?.value ?? home.score ?? '0',
             awayScore: away.score?.value ?? away.score ?? '0',
             status: event.status?.type?.state || 'pre',
@@ -146,11 +172,9 @@
           };
         };
 
-        // Extraction et filtrage
         const nflGames = (nflData.events || []).map(e => parseEvent(e, 'NFL')).filter(g => getTeamOwners(g.homeTeam).length > 0 || getTeamOwners(g.awayTeam).length > 0);
         const habsGames = (nhlData.events || []).map(e => parseEvent(e, 'LNH'));
 
-        // FUSION ET TRI STRICTEMENT CHRONOLOGIQUE SELON LA DATE ET L'HEURE
         allGames = [...nflGames, ...habsGames].sort((a, b) => a.rawDate - b.rawDate);
 
         renderLeaderboard();
@@ -160,7 +184,7 @@
       }
     }
 
-    // 3. CALCUL DES POINTS DU POOL NFL (1 pt / victoire accordé à chaque propriétaire)
+    // 3. TABLEAU DES MENEURS AVEC LOGOS DES ÉQUIPES
     function renderLeaderboard() {
       const scores = { "Moi": 0, "Conjointe": 0, "Fille": 0 };
 
@@ -180,14 +204,16 @@
         <div class="leader-card">
           <div>
             <div class="leader-name">${rank === 0 ? '👑 ' : ''}${name}</div>
-            <div class="leader-teams">${members[name].teams.join(', ')}</div>
+            <div class="leader-teams">
+              ${members[name].logos.map(logo => `<img src="${logo}" class="leader-team-logo" alt="logo">`).join('')}
+            </div>
           </div>
           <div class="leader-score">${scores[name]} <span style="font-size:0.7rem; color:var(--text-muted)">PTS</span></div>
         </div>
       `).join('');
     }
 
-    // 4. AFFICHAGE DES CARTES DE MATCHS ENTREMÊLÉES
+    // 4. AFFICHAGE DES CARTES DE MATCHS AVEC LOGOS
     function renderGames(searchText = '') {
       const container = document.getElementById('gamesContainer');
       container.innerHTML = '';
@@ -236,13 +262,19 @@
 
           <div class="game-body">
             <div class="team away">
-              <span>${g.awayTeam}</span>
-              ${g.status !== 'pre' ? `<span class="score">${g.awayScore}</span>` : ''}
+              <img src="${g.awayLogo}" class="team-logo" alt="${g.awayTeam}">
+              <div class="team-info">
+                <span>${g.awayTeam}</span>
+                ${g.status !== 'pre' ? `<span class="score">${g.awayScore}</span>` : ''}
+              </div>
             </div>
             <span class="vs">@</span>
             <div class="team home">
-              <span>${g.homeTeam}</span>
-              ${g.status !== 'pre' ? `<span class="score">${g.homeScore}</span>` : ''}
+              <img src="${g.homeLogo}" class="team-logo" alt="${g.homeTeam}">
+              <div class="team-info">
+                <span>${g.homeTeam}</span>
+                ${g.status !== 'pre' ? `<span class="score">${g.homeScore}</span>` : ''}
+              </div>
             </div>
           </div>
 
@@ -266,7 +298,6 @@
       renderGames(e.target.value);
     });
 
-    // Chargement initial et rafraîchissement automatique
     fetchLiveSchedules();
     setInterval(fetchLiveSchedules, 60000);
   </script>
