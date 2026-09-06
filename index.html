@@ -85,9 +85,9 @@
     <input type="text" id="searchInput" class="search-input" placeholder="Rechercher une équipe, un adversaire ou une date...">
     <div class="filter-group">
       <button class="filter-btn active" onclick="setFilter('all', this)">Tous les matchs</button>
-      <button class="filter-btn" onclick="setFilter('Moi', this)">Moi</button>
-      <button class="filter-btn" onclick="setFilter('Conjointe', this)">Conjointe</button>
-      <button class="filter-btn" onclick="setFilter('Fille', this)">Fille</button>
+      <button class="filter-btn" onclick="setFilter('Martin', this)">Martin</button>
+      <button class="filter-btn" onclick="setFilter('Véronique', this)">Véronique</button>
+      <button class="filter-btn" onclick="setFilter('Raphaëlle', this)">Raphaëlle</button>
       <button class="filter-btn" onclick="setFilter('Canadiens', this)">Canadiens (82 matchs)</button>
     </div>
   </section>
@@ -97,7 +97,7 @@
   <script>
     // 1. CONFIGURATION ET LOGOS DES ÉQUIPES DU POOL (NFL)
     const members = {
-      "Moi": { 
+      "Martin": { 
         teams: ["Los Angeles Rams", "Buffalo Bills", "Baltimore Ravens", "Seattle Seahawks"],
         logos: [
           "https://a.espncdn.com/i/teamlogos/nfl/500/lar.png",
@@ -106,7 +106,7 @@
           "https://a.espncdn.com/i/teamlogos/nfl/500/sea.png"
         ]
       },
-      "Conjointe": { 
+      "Véronique": { 
         teams: ["Cleveland Browns", "Jacksonville Jaguars", "Detroit Lions", "Arizona Cardinals"],
         logos: [
           "https://a.espncdn.com/i/teamlogos/nfl/500/cle.png",
@@ -115,7 +115,7 @@
           "https://a.espncdn.com/i/teamlogos/nfl/500/ari.png"
         ]
       },
-      "Fille": { 
+      "Raphaëlle": { 
         teams: ["Buffalo Bills", "Kansas City Chiefs", "Los Angeles Rams", "Dallas Cowboys"],
         logos: [
           "https://a.espncdn.com/i/teamlogos/nfl/500/buf.png",
@@ -186,7 +186,7 @@
 
     // 3. TABLEAU DES MENEURS AVEC LOGOS DES ÉQUIPES
     function renderLeaderboard() {
-      const scores = { "Moi": 0, "Conjointe": 0, "Fille": 0 };
+      const scores = { "Martin": 0, "Véronique": 0, "Raphaëlle": 0 };
 
       allGames.forEach(game => {
         if (game.league === 'NFL' && game.winner) {
@@ -224,9 +224,9 @@
         const isHabs = g.homeTeam.includes("Canadiens") || g.awayTeam.includes("Canadiens");
 
         let matchesMember = true;
-        if (currentFilter === 'Moi') matchesMember = homeOwners.includes('Moi') || awayOwners.includes('Moi');
-        else if (currentFilter === 'Conjointe') matchesMember = homeOwners.includes('Conjointe') || awayOwners.includes('Conjointe');
-        else if (currentFilter === 'Fille') matchesMember = homeOwners.includes('Fille') || awayOwners.includes('Fille');
+        if (currentFilter === 'Martin') matchesMember = homeOwners.includes('Martin') || awayOwners.includes('Martin');
+        else if (currentFilter === 'Véronique') matchesMember = homeOwners.includes('Véronique') || awayOwners.includes('Véronique');
+        else if (currentFilter === 'Raphaëlle') matchesMember = homeOwners.includes('Raphaëlle') || awayOwners.includes('Raphaëlle');
         else if (currentFilter === 'Canadiens') matchesMember = isHabs;
 
         const search = searchText.toLowerCase();
