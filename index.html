@@ -24,7 +24,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background-color: var(--bg-main); color: var(--text-main); padding: calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 20px) 16px; min-height: 100vh; }
 
-    header { margin-bottom: 20px; text-align: center; }
+    header { margin-bottom: 16px; text-align: center; }
     h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; }
     .status-bar { font-size: 0.75rem; color: var(--accent-green); margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; }
     .pulse { width: 8px; height: 8px; background-color: var(--accent-green); border-radius: 50%; display: inline-block; box-shadow: 0 0 10px var(--accent-green); animation: pulse 2s infinite; }
@@ -33,6 +33,91 @@
       0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
       70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
       100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
+
+    /* CARTE PROCHAIN MATCH & COMPTE À REBOURS */
+    .next-game-card {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
+      border: 1px solid var(--accent-blue);
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .next-game-card.habs-next {
+      border-color: var(--accent-red);
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.25);
+    }
+
+    .next-game-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent-gold);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .next-game-teams {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 4px 0;
+    }
+
+    .next-team {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 42%;
+    }
+
+    .next-team.away { justify-content: flex-start; text-align: left; }
+    .next-team.home { justify-content: flex-end; text-align: right; flex-row-reverse: row-reverse; }
+
+    .next-team-logo {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+    }
+
+    .next-team-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .next-vs {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    .countdown-timer {
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 10px;
+      padding: 8px 12px;
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--accent-blue);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      letter-spacing: 0.5px;
+    }
+
+    .habs-next .countdown-timer {
+      color: var(--accent-red);
+      border-color: rgba(239, 68, 68, 0.3);
     }
 
     /* LEADERBOARD */
@@ -54,7 +139,7 @@
     .filter-btn { background-color: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-muted); padding: 8px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; cursor: pointer; transition: all 0.2s; }
     .filter-btn.active { background-color: var(--accent-blue); color: #0f172a; border-color: var(--accent-blue); font-weight: 700; box-shadow: 0 0 12px rgba(56, 189, 248, 0.4); }
 
-    /* GAME CARDS (GLOW EFFECTS & GRADIENTS) */
+    /* GAME CARDS */
     .games-list { display: flex; flex-direction: column; gap: 12px; }
     
     .game-card { 
@@ -70,21 +155,18 @@
       overflow: hidden;
     }
 
-    /* Style NFL par défaut */
     .game-card.nfl-card {
       border-left: 4px solid var(--accent-blue);
       background: linear-gradient(135deg, rgba(30, 41, 59, 1) 0%, rgba(15, 23, 42, 1) 100%);
       box-shadow: 0 2px 10px rgba(56, 189, 248, 0.08);
     }
 
-    /* Style Canadiens de Montréal (LNH) */
     .game-card.habs-card { 
       border-left: 4px solid var(--accent-red);
       background: linear-gradient(135deg, rgba(30, 41, 59, 1) 0%, rgba(45, 15, 25, 0.6) 100%);
       box-shadow: 0 0 15px rgba(239, 68, 68, 0.15);
     }
 
-    /* Style Victoire d'une équipe du Pool */
     .game-card.pool-win {
       border: 1px solid var(--accent-green);
       border-left: 5px solid var(--accent-green);
@@ -123,6 +205,28 @@
     <div class="status-bar"><span class="pulse"></span> Résultats en direct synchronisés</div>
   </header>
 
+  <!-- CARTE PROCHAIN MATCH À VENIR -->
+  <section id="nextGameSection" style="display: none;">
+    <div class="next-game-card" id="nextGameCard">
+      <div class="next-game-header">
+        <span id="nextGameBadge">⚡ Prochain match</span>
+        <span id="nextGameChannel" style="color: var(--text-muted); font-size: 0.7rem;"></span>
+      </div>
+      <div class="next-game-teams">
+        <div class="next-team away">
+          <img id="nextAwayLogo" class="next-team-logo" src="" alt="">
+          <span id="nextAwayName" class="next-team-name"></span>
+        </div>
+        <span class="next-vs">@</span>
+        <div class="next-team home">
+          <img id="nextHomeLogo" class="next-team-logo" src="" alt="">
+          <span id="nextHomeName" class="next-team-name"></span>
+        </div>
+      </div>
+      <div class="countdown-timer" id="countdownTimer">Chargement du compte à rebours...</div>
+    </div>
+  </section>
+
   <section>
     <div class="section-title">Tableau des Meneurs Pool NFL</div>
     <div class="leaderboard" id="leaderboard"></div>
@@ -142,7 +246,8 @@
   <main class="games-list" id="gamesContainer"></main>
 
   <script>
-    // EXTRACTION ROBUSTE DES LOGOS
+    let countdownInterval = null;
+
     function getTeamLogoUrl(teamObj, league) {
       if (teamObj) {
         if (teamObj.logo) return teamObj.logo;
@@ -155,7 +260,6 @@
       return 'https://a.espncdn.com/i/teamlogos/default-team-logo.png';
     }
 
-    // EXTRACTION DE L'URL DU ROSTER/JOUEURS
     function getStatsUrl(teamObj, league) {
       if (teamObj && teamObj.abbreviation) {
         const sport = league === 'LNH' ? 'nhl' : 'nfl';
@@ -166,7 +270,6 @@
       return `https://www.espn.com/${sport}/teams`;
     }
 
-    // 1. CONFIGURATION DES ÉQUIPES DU POOL (NFL)
     const members = {
       "Martin": { 
         teams: ["Los Angeles Rams", "Buffalo Bills", "Baltimore Ravens", "Seattle Seahawks"],
@@ -213,7 +316,67 @@
       return owners;
     }
 
-    // 2. RÉCUPÉRATION DES DONNÉES ET NORMALISATION
+    // AFFICHER LA CARTE PROCHAIN MATCH ET LANCER LE COMPTE À REBOURS DYNAMIQUE
+    function renderNextGameCard() {
+      const now = new Date();
+      
+      // Trouver le premier match qui n'est pas encore commencé
+      const nextGame = allGames.find(g => g.rawDate > now && g.status === 'pre');
+
+      if (!nextGame) {
+        document.getElementById('nextGameSection').style.display = 'none';
+        return;
+      }
+
+      const cardSection = document.getElementById('nextGameSection');
+      const cardEl = document.getElementById('nextGameCard');
+      const isHabs = nextGame.league === 'LNH';
+
+      cardSection.style.display = 'block';
+      if (isHabs) {
+        cardEl.classList.add('habs-next');
+      } else {
+        cardEl.classList.remove('habs-next');
+      }
+
+      document.getElementById('nextGameBadge').innerText = `⚡ PROCHAIN MATCH (${nextGame.league})`;
+      document.getElementById('nextGameChannel').innerText = `Diffusion : ${nextGame.channel}`;
+      document.getElementById('nextAwayName').innerText = nextGame.awayTeam;
+      document.getElementById('nextAwayLogo').src = nextGame.awayLogo;
+      document.getElementById('nextHomeName').innerText = nextGame.homeTeam;
+      document.getElementById('nextHomeLogo').src = nextGame.homeLogo;
+
+      // Démarrage du compte à rebours dynamique
+      if (countdownInterval) clearInterval(countdownInterval);
+
+      function updateCountdown() {
+        const currentTime = new Date();
+        const diffMs = nextGame.rawDate - currentTime;
+
+        if (diffMs <= 0) {
+          document.getElementById('countdownTimer').innerText = "🔥 LE MATCH COMMENCE !";
+          clearInterval(countdownInterval);
+          return;
+        }
+
+        const hours = Math.floor(diffMs / (1000 * 60 * 60));
+        const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+        const days = Math.floor(hours / 24);
+        const remHours = hours % 24;
+
+        if (days > 0) {
+          document.getElementById('countdownTimer').innerText = `Dans ${days}j ${remHours}h ${minutes}m ${seconds}s`;
+        } else {
+          document.getElementById('countdownTimer').innerText = `Dans ${String(remHours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
+        }
+      }
+
+      updateCountdown();
+      countdownInterval = setInterval(updateCountdown, 1000);
+    }
+
     async function fetchLiveSchedules() {
       try {
         const nflRes = await fetch('https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=20260901-20270120&limit=500');
@@ -253,6 +416,7 @@
 
         allGames = [...nflGames, ...habsGames].sort((a, b) => a.rawDate - b.rawDate);
 
+        renderNextGameCard();
         renderLeaderboard();
         renderGames();
       } catch (err) {
@@ -260,7 +424,6 @@
       }
     }
 
-    // 3. TABLEAU DES MENEURS
     function renderLeaderboard() {
       const scores = { "Martin": 0, "Véronique": 0, "Raphaëlle": 0 };
 
@@ -298,7 +461,6 @@
       `).join('');
     }
 
-    // 4. AFFICHAGE DES CARTES DE MATCHS AVEC GLOW EFFECTS
     function renderGames(searchText = '') {
       const container = document.getElementById('gamesContainer');
       container.innerHTML = '';
@@ -334,14 +496,12 @@
         const allMatchOwners = [...new Set([...homeOwners, ...awayOwners])];
         const isHabs = g.league === 'LNH';
 
-        // Vérifier si une équipe du pool a gagné ce match
         const poolWinnerOwners = g.winner ? getTeamOwners(g.winner) : [];
         const isPoolWin = g.league === 'NFL' && poolWinnerOwners.length > 0;
 
         const awayUrl = getStatsUrl(g.awayTeamObj, g.league);
         const homeUrl = getStatsUrl(g.homeTeamObj, g.league);
 
-        // Déterminer la classe de style visuel (Glow Effect)
         let cardStyleClass = 'nfl-card';
         if (isPoolWin) {
           cardStyleClass = 'pool-win';
