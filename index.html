@@ -34,7 +34,9 @@
     .leaderboard { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
     .leader-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
     .leader-name { font-weight: 700; font-size: 1rem; }
-    .leader-teams { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .leader-teams { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .leader-team-item { display: flex; align-items: center; gap: 4px; text-decoration: none; color: inherit; }
+    .leader-team-item:hover { text-decoration: underline; color: var(--accent-blue); }
     .leader-team-logo { width: 18px; height: 18px; object-fit: contain; }
     .leader-score { font-size: 1.4rem; font-weight: 800; color: var(--accent-gold); text-align: right; }
 
@@ -62,6 +64,8 @@
     .team.home { justify-content: flex-end; text-align: right; flex-row-reverse: row-reverse; }
     .team-logo { width: 32px; height: 32px; object-fit: contain; flex-shrink: 0; }
     .team-info { display: flex; flex-direction: column; }
+    .team-link { color: var(--text-main); text-decoration: none; transition: color 0.2s; }
+    .team-link:hover { color: var(--accent-blue); text-decoration: underline; }
     .score { font-size: 1.25rem; font-weight: 800; color: var(--accent-gold); }
     .vs { color: var(--text-muted); font-size: 0.75rem; }
 
@@ -95,7 +99,31 @@
   <main class="games-list" id="gamesContainer"></main>
 
   <script>
-    // 1. CONFIGURATION ET LOGOS DES ÉQUIPES DU POOL (NFL)
+    // CORRESPONDANCE DES ÉQUIPES VERS LEURS PAGES OFFICIELLES DE JOUEURS & STATISTIQUES (ESPN)
+    const teamLinks = {
+      "Los Angeles Rams": "https://www.espn.com/nfl/team/roster/_/name/lar/los-angeles-rams",
+      "Buffalo Bills": "https://www.espn.com/nfl/team/roster/_/name/buf/buffalo-bills",
+      "Baltimore Ravens": "https://www.espn.com/nfl/team/roster/_/name/bal/baltimore-ravens",
+      "Seattle Seahawks": "https://www.espn.com/nfl/team/roster/_/name/sea/seattle-seahawks",
+      "Cleveland Browns": "https://www.espn.com/nfl/team/roster/_/name/cle/cleveland-browns",
+      "Jacksonville Jaguars": "https://www.espn.com/nfl/team/roster/_/name/jax/jacksonville-jaguars",
+      "Detroit Lions": "https://www.espn.com/nfl/team/roster/_/name/det/detroit-lions",
+      "Arizona Cardinals": "https://www.espn.com/nfl/team/roster/_/name/ari/arizona-cardinals",
+      "Kansas City Chiefs": "https://www.espn.com/nfl/team/roster/_/name/kc/kansas-city-chiefs",
+      "Dallas Cowboys": "https://www.espn.com/nfl/team/roster/_/name/dal/dallas-cowboys",
+      "Montreal Canadiens": "https://www.espn.com/nhl/team/roster/_/name/mtl/montreal-canadiens",
+      "Canadiens de Montréal": "https://www.espn.com/nhl/team/roster/_/name/mtl/montreal-canadiens"
+    };
+
+    function getStatsUrl(teamName, league) {
+      for (const [name, url] of Object.entries(teamLinks)) {
+        if (teamName.toLowerCase().includes(name.toLowerCase())) return url;
+      }
+      const sport = league === 'LNH' ? 'nhl' : 'nfl';
+      return `https://www.espn.com/${sport}/teams`;
+    }
+
+    // 1. CONFIGURATION DES ÉQUIPES DU POOL (NFL)
     const members = {
       "Martin": { 
         teams: ["Los Angeles Rams", "Buffalo Bills", "Baltimore Ravens", "Seattle Seahawks"],
@@ -139,7 +167,7 @@
       return owners;
     }
 
-    // 2. RÉCUPÉRATION ET EXTRACTION DES DONNÉES AVEC LOGOS
+    // 2. RÉCUPÉRATION ET EXTRACTION DES DONNÉES
     async function fetchLiveSchedules() {
       try {
         const nflRes = await fetch('https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=20260901-20270120&limit=500');
@@ -184,7 +212,7 @@
       }
     }
 
-    // 3. TABLEAU DES MENEURS AVEC LOGOS DES ÉQUIPES
+    // 3. TABLEAU DES MENEURS AVEC LIENS VERS LES STATISTIQUES DES ÉQUIPES
     function renderLeaderboard() {
       const scores = { "Martin": 0, "Véronique": 0, "Raphaëlle": 0 };
 
@@ -205,7 +233,11 @@
           <div>
             <div class="leader-name">${rank === 0 ? '👑 ' : ''}${name}</div>
             <div class="leader-teams">
-              ${members[name].logos.map(logo => `<img src="${logo}" class="leader-team-logo" alt="logo">`).join('')}
+              ${members[name].teams.map((team, idx) => `
+                <a href="${getStatsUrl(team, 'NFL')}" target="_blank" class="leader-team-item" title="Voir les joueurs et stats de ${team}">
+                  <img src="${members[name].logos[idx]}" class="leader-team-logo" alt="logo">
+                </a>
+              `).join('')}
             </div>
           </div>
           <div class="leader-score">${scores[name]} <span style="font-size:0.7rem; color:var(--text-muted)">PTS</span></div>
@@ -213,7 +245,7 @@
       `).join('');
     }
 
-    // 4. AFFICHAGE DES CARTES DE MATCHS AVEC LOGOS
+    // 4. AFFICHAGE DES CARTES DE MATCHS AVEC LIENS CLIENTS/SERVEURS
     function renderGames(searchText = '') {
       const container = document.getElementById('gamesContainer');
       container.innerHTML = '';
@@ -262,17 +294,21 @@
 
           <div class="game-body">
             <div class="team away">
-              <img src="${g.awayLogo}" class="team-logo" alt="${g.awayTeam}">
+              <a href="${getStatsUrl(g.awayTeam, g.league)}" target="_blank">
+                <img src="${g.awayLogo}" class="team-logo" alt="${g.awayTeam}">
+              </a>
               <div class="team-info">
-                <span>${g.awayTeam}</span>
+                <a href="${getStatsUrl(g.awayTeam, g.league)}" target="_blank" class="team-link">${g.awayTeam}</a>
                 ${g.status !== 'pre' ? `<span class="score">${g.awayScore}</span>` : ''}
               </div>
             </div>
             <span class="vs">@</span>
             <div class="team home">
-              <img src="${g.homeLogo}" class="team-logo" alt="${g.homeTeam}">
+              <a href="${getStatsUrl(g.homeTeam, g.league)}" target="_blank">
+                <img src="${g.homeLogo}" class="team-logo" alt="${g.homeTeam}">
+              </a>
               <div class="team-info">
-                <span>${g.homeTeam}</span>
+                <a href="${getStatsUrl(g.homeTeam, g.league)}" target="_blank" class="team-link">${g.homeTeam}</a>
                 ${g.status !== 'pre' ? `<span class="score">${g.homeScore}</span>` : ''}
               </div>
             </div>
