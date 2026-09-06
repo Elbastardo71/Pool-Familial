@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Pool Familial">
+  <title>Calendrier Combiné LNH & NFL 2026-2027</title>
+  
+  <style>
+    :root {
+      --bg-main: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-blue: #38bdf8;
+      --accent-red: #f43f5e;
+      --accent-gold: #fbbf24;
+      --accent-green: #22c55e;
+      --border-color: #334155;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg-main); color: var(--text-main); padding: calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 20px) 16px; min-height: 100vh; }
+
+    header { margin-bottom: 20px; text-align: center; }
+    h1 { font-size: 1.5rem; font-weight: 800; }
+    .status-bar { font-size: 0.75rem; color: var(--accent-green); margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .pulse { width: 8px; height: 8px; background-color: var(--accent-green); border-radius: 50%; display: inline-block; box-shadow: 0 0 8px var(--accent-green); }
+
+    /* LEADERBOARD */
+    .section-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 8px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .leaderboard { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+    .leader-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
+    .leader-name { font-weight: 700; font-size: 1rem; }
+    .leader-teams { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+    .leader-score { font-size: 1.4rem; font-weight: 800; color: var(--accent-gold); text-align: right; }
+
+    /* CONTROLS & FILTERS */
+    .controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+    .search-input { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-main); font-size: 0.95rem; outline: none; }
+    .filter-group { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+    .filter-btn { background-color: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-muted); padding: 8px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; cursor: pointer; }
+    .filter-btn.active { background-color: var(--accent-blue); color: #0f172a; border-color: var(--accent-blue); }
+
+    /* GAME CARDS */
+    .games-list { display: flex; flex-direction: column; gap: 10px; }
+    .game-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+    .game-card.habs-card { border-left: 4px solid var(--accent-red); }
+    .game-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; font-weight: 700; }
+    .badge { padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
+    .badge-nfl { background-color: rgba(56, 189, 248, 0.15); color: var(--accent-blue); }
+    .badge-lnh { background-color: rgba(244, 63, 94, 0.15); color: var(--accent-red); }
+    .badge-owner { background-color: rgba(251, 191, 36, 0.15); color: var(--accent-gold); margin-left: 4px; }
+    .live-tag { background-color: var(--accent-red); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; }
+
+    .game-body { display: flex; justify-content: space-between; align-items: center; font-size: 0.92rem; font-weight: 600; }
+    .team { display: flex; flex-direction: column; width: 42%; }
+    .team.away { text-align: left; }
+    .team.home { text-align: right; }
+    .score { font-size: 1.15rem; font-weight: 800; color: var(--accent-gold); }
+    .vs { color: var(--text-muted); font-size: 0.75rem; }
+
+    .game-footer { border-top: 1px dashed var(--border-color); padding-top: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-muted); }
+    .channel { color: var(--accent-gold); font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Calendrier Combiné 2026-2027</h1>
+    <div class="status-bar"><span class="pulse"></span> Résultats en direct synchronisés</div>
+  </header>
+
+  <section>
+    <div class="section-title">Tableau des Meneurs Pool NFL</div>
+    <div class="leaderboard" id="leaderboard"></div>
+  </section>
+
+  <section class="controls">
+    <input type="text" id="searchInput" class="search-input" placeholder="Rechercher une équipe, un adversaire ou une date...">
+    <div class="filter-group">
+      <button class="filter-btn active" onclick="setFilter('all', this)">Tous les matchs</button>
+      <button class="filter-btn" onclick="setFilter('Moi', this)">Moi</button>
+      <button class="filter-btn" onclick="setFilter('Conjointe', this)">Conjointe</button>
+      <button class="filter-btn" onclick="setFilter('Fille', this)">Fille</button>
+      <button class="filter-btn" onclick="setFilter('Canadiens', this)">Canadiens (82 matchs)</button>
+    </div>
+  </section>
+
+  <main class="games-list" id="gamesContainer"></main>
+
+  <script>
+    // 1. MISE À JOUR DES ÉQUIPES DU POOL (NFL)
+    const members = {
+      "Moi": { teams: ["Los Angeles Rams", "Buffalo Bills", "Baltimore Ravens", "Seattle Seahawks"] },
+      "Conjointe": { teams: ["Cleveland Browns", "Jacksonville Jaguars", "Detroit Lions", "Arizona Cardinals"] },
+      "Fille": { teams: ["Buffalo Bills", "Kansas City Chiefs", "Los Angeles Rams", "Dallas Cowboys"] }
+    };
+
+    let allGames = [];
+    let currentFilter = 'all';
+
+    // Retourne la liste de tous les propriétaires d'une équipe donnée
+    function getTeamOwners(teamName) {
+      const owners = [];
+      for (const [owner, data] of Object.entries(members)) {
+        if (data.teams.some(t => teamName.toLowerCase().includes(t.toLowerCase()))) {
+          owners.push(owner);
+        }
+      }
+      return owners;
+    }
+
+    // 2. RÉCUPÉRATION ET ENTREMÊLEMENT CHRONOLOGIQUE DES SÉRIES DE MATCHS
+    async function fetchLiveSchedules() {
+      try {
+        // NFL Feed
+        const nflRes = await fetch('https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=20260901-20270120&limit=500');
+        const nflData = await nflRes.json();
+        
+        // LNH Feed (Saison complète des Canadiens de Montréal)
+        const nhlRes = await fetch('https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/teams/mtl/schedule?season=2027');
+        const nhlData = await nhlRes.json();
+
+        const parseEvent = (event, league) => {
+          const competition = event.competitions ? event.competitions[0] : event;
+          const home = competition.competitors.find(c => c.homeAway === 'home');
+          const away = competition.competitors.find(c => c.homeAway === 'away');
+          const rawDate = new Date(event.date);
+
+          return {
+            id: event.id,
+            league: league,
+            rawDate: rawDate,
+            dateStr: rawDate.toLocaleDateString('fr-CA', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+            homeTeam: home.team.displayName,
+            awayTeam: away.team.displayName,
+            homeScore: home.score?.value ?? home.score ?? '0',
+            awayScore: away.score?.value ?? away.score ?? '0',
+            status: event.status?.type?.state || 'pre',
+            statusDetail: event.status?.type?.shortDetail || '',
+            winner: event.status?.type?.state === 'post' ? (parseInt(home.score) > parseInt(away.score) ? home.team.displayName : away.team.displayName) : null,
+            channel: competition.broadcasts?.[0]?.media?.shortName || (league === 'LNH' ? 'RDS / TVA Sports' : 'RDS / CBS / FOX')
+          };
+        };
+
+        // Extraction et filtrage
+        const nflGames = (nflData.events || []).map(e => parseEvent(e, 'NFL')).filter(g => getTeamOwners(g.homeTeam).length > 0 || getTeamOwners(g.awayTeam).length > 0);
+        const habsGames = (nhlData.events || []).map(e => parseEvent(e, 'LNH'));
+
+        // FUSION ET TRI STRICTEMENT CHRONOLOGIQUE SELON LA DATE ET L'HEURE
+        allGames = [...nflGames, ...habsGames].sort((a, b) => a.rawDate - b.rawDate);
+
+        renderLeaderboard();
+        renderGames();
+      } catch (err) {
+        console.error("Erreur de synchronisation :", err);
+      }
+    }
+
+    // 3. CALCUL DES POINTS DU POOL NFL (1 pt / victoire accordé à chaque propriétaire)
+    function renderLeaderboard() {
+      const scores = { "Moi": 0, "Conjointe": 0, "Fille": 0 };
+
+      allGames.forEach(game => {
+        if (game.league === 'NFL' && game.winner) {
+          const owners = getTeamOwners(game.winner);
+          owners.forEach(owner => {
+            scores[owner] += 1;
+          });
+        }
+      });
+
+      const sortedMembers = Object.keys(scores).sort((a, b) => scores[b] - scores[a]);
+      const leaderboardEl = document.getElementById('leaderboard');
+
+      leaderboardEl.innerHTML = sortedMembers.map((name, rank) => `
+        <div class="leader-card">
+          <div>
+            <div class="leader-name">${rank === 0 ? '👑 ' : ''}${name}</div>
+            <div class="leader-teams">${members[name].teams.join(', ')}</div>
+          </div>
+          <div class="leader-score">${scores[name]} <span style="font-size:0.7rem; color:var(--text-muted)">PTS</span></div>
+        </div>
+      `).join('');
+    }
+
+    // 4. AFFICHAGE DES CARTES DE MATCHS ENTREMÊLÉES
+    function renderGames(searchText = '') {
+      const container = document.getElementById('gamesContainer');
+      container.innerHTML = '';
+
+      const filtered = allGames.filter(g => {
+        const homeOwners = getTeamOwners(g.homeTeam);
+        const awayOwners = getTeamOwners(g.awayTeam);
+        const isHabs = g.homeTeam.includes("Canadiens") || g.awayTeam.includes("Canadiens");
+
+        let matchesMember = true;
+        if (currentFilter === 'Moi') matchesMember = homeOwners.includes('Moi') || awayOwners.includes('Moi');
+        else if (currentFilter === 'Conjointe') matchesMember = homeOwners.includes('Conjointe') || awayOwners.includes('Conjointe');
+        else if (currentFilter === 'Fille') matchesMember = homeOwners.includes('Fille') || awayOwners.includes('Fille');
+        else if (currentFilter === 'Canadiens') matchesMember = isHabs;
+
+        const search = searchText.toLowerCase();
+        const matchesSearch = searchText === '' || 
+          g.homeTeam.toLowerCase().includes(search) || 
+          g.awayTeam.toLowerCase().includes(search) || 
+          g.dateStr.toLowerCase().includes(search);
+
+        return matchesMember && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted)">Aucun match trouvé pour ce filtre</div>';
+        return;
+      }
+
+      filtered.forEach(g => {
+        const homeOwners = getTeamOwners(g.homeTeam);
+        const awayOwners = getTeamOwners(g.awayTeam);
+        const allMatchOwners = [...new Set([...homeOwners, ...awayOwners])];
+        const isHabs = g.league === 'LNH';
+
+        const card = document.createElement('div');
+        card.className = `game-card ${isHabs ? 'habs-card' : ''}`;
+        card.innerHTML = `
+          <div class="game-header">
+            <div>
+              <span class="badge badge-${g.league.toLowerCase()}">${g.league}</span>
+              ${allMatchOwners.map(owner => `<span class="badge badge-owner">${owner}</span>`).join('')}
+            </div>
+            ${g.status === 'in' ? `<span class="live-tag">EN DIRECT (${g.statusDetail})</span>` : `<span class="game-date">${g.dateStr}</span>`}
+          </div>
+
+          <div class="game-body">
+            <div class="team away">
+              <span>${g.awayTeam}</span>
+              ${g.status !== 'pre' ? `<span class="score">${g.awayScore}</span>` : ''}
+            </div>
+            <span class="vs">@</span>
+            <div class="team home">
+              <span>${g.homeTeam}</span>
+              ${g.status !== 'pre' ? `<span class="score">${g.homeScore}</span>` : ''}
+            </div>
+          </div>
+
+          <div class="game-footer">
+            <span>Diffusion : <strong class="channel">${g.channel}</strong></span>
+            <span>${g.status === 'post' ? 'Terminé' : g.statusDetail}</span>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function setFilter(filter, btn) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderGames(document.getElementById('searchInput').value);
+    }
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      renderGames(e.target.value);
+    });
+
+    // Chargement initial et rafraîchissement automatique
+    fetchLiveSchedules();
+    setInterval(fetchLiveSchedules, 60000);
+  </script>
+</body>
+</html>
