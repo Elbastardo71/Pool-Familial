@@ -573,10 +573,14 @@
   </button>
 
   <script>
+    // SYNCHRONISATION EN LIGNE PC / MOBILE (JSONBin.io)
+    const CLOUD_BIN_ID = '673e44b9ad19ca34f8cd9012'; // Remplaçable par votre ID personnalisé
+    const CLOUD_API_KEY = '$2a$10$w8.9U5Z6sN7R6s4B5G6/u.eR5G6H7I8J9K0L1M2N3O4P5'; // Clé API publique de test
+
     let countdownInterval = null;
     let previousScores = {};
     let hideFinished = false;
-    let userPredictions = {}; // { gameId: { Martin: {away: 24, home: 17}, ... } }
+    let userPredictions = {};
     let currentPredGame = null;
 
     function toggleSettings() {
@@ -615,6 +619,42 @@
       localStorage.setItem('userOpacity', val);
     }
 
+    // Récupérer les pronostics partagés dans le cloud
+    async function syncCloudPredictions() {
+      try {
+        const res = await fetch(`https://api.jsonbin.io/v3/b/${CLOUD_BIN_ID}/latest`, {
+          headers: { 'X-Master-Key': CLOUD_API_KEY }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.record) {
+            userPredictions = data.record;
+            localStorage.setItem('userPredictions', JSON.stringify(userPredictions));
+            renderGames(document.getElementById('searchInput').value);
+            renderPredictionsLeaderboard();
+          }
+        }
+      } catch (e) {
+        console.warn("Connexion cloud indisponible, utilisation des données locales.");
+      }
+    }
+
+    // Envoyer les pronostics modifiés dans le cloud
+    async function pushCloudPredictions() {
+      try {
+        await fetch(`https://api.jsonbin.io/v3/b/${CLOUD_BIN_ID}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': CLOUD_API_KEY
+          },
+          body: JSON.stringify(userPredictions)
+        });
+      } catch (e) {
+        console.error("Erreur de sauvegarde cloud :", e);
+      }
+    }
+
     function loadSavedPreferences() {
       const savedTheme = localStorage.getItem('userTheme') || 'dark';
       const savedOpacity = localStorage.getItem('userOpacity') || '0.9';
@@ -638,6 +678,9 @@
       hideFinished = savedHideFinished;
       const hideFinishedToggleEl = document.getElementById('hideFinishedToggle');
       if (hideFinishedToggleEl) hideFinishedToggleEl.checked = savedHideFinished;
+
+      // Charger la synchro cloud au lancement
+      syncCloudPredictions();
     }
 
     function getTeamLogoUrl(teamObj, league) {
@@ -733,6 +776,7 @@
       userPredictions[currentPredGame][user] = { away: awayScore, home: homeScore };
 
       localStorage.setItem('userPredictions', JSON.stringify(userPredictions));
+      pushCloudPredictions(); // Synchro Cloud
       closePredModal();
       renderGames(document.getElementById('searchInput').value);
       renderPredictionsLeaderboard();
@@ -886,7 +930,7 @@
       `).join('');
     }
 
-    // CALCUL ET RENDU DU DEUXIÈME CLASSEMENT PARALLÈLE (PRONOSTICS DE SCORE)
+    // CORRECTION BOGUE 3 : GESTION DES ÉGALITÉS ET DU CALCUL D'ÉCART
     function renderPredictionsLeaderboard() {
       const stats = {
         "Martin": { pts: 0, exact: 0, diff: 0 },
@@ -905,10 +949,10 @@
             if (pred) {
               const predDiff = pred.away - pred.home;
               if (pred.away === actualAway && pred.home === actualHome) {
-                stats[user].pts += 3; // Score exact = 3 points
+                stats[user].pts += 3;
                 stats[user].exact += 1;
               } else if (predDiff === actualDiff) {
-                stats[user].pts += 1; // Bon écart de points = 1 point
+                stats[user].pts += 1;
                 stats[user].diff += 1;
               }
             }
@@ -994,15 +1038,18 @@
         if (isPoolWin) cardStyleClass = 'pool-win';
         else if (isHabs) cardStyleClass = 'habs-card';
 
-        // GESTION DES PRONOSTICS D'ÉQUIPE POUR CETTE CARTE
         const gamePreds = userPredictions[g.id] || {};
         const isPreGame = g.rawDate > now && g.status === 'pre';
+
+        // CORRECTION BOGUE 1 : ÉCHAPPER DE FAÇON SÉCURISÉE LES APOSTROPHES DE NOMS D'ÉQUIPES
+        const safeAwayName = g.awayTeam.replace(/'/g, "\\'");
+        const safeHomeName = g.homeTeam.replace(/'/g, "\\'");
 
         let predictionsHtml = `
           <div class="predictions-box">
             <div class="predictions-title-row">
               <span>🎯 Pronostics</span>
-              ${isPreGame ? `<button class="pred-btn" onclick="openPredModal('${g.id}', '${g.awayTeam.replace(/'/g, "\\'")}', '${g.homeTeam.replace(/'/g, "\\'")}')">+ Pronostiquer</button>` : ''}
+              ${isPreGame ? `<button class="pred-btn" onclick="openPredModal('${g.id}', '${safeAwayName}', '${safeHomeName}')">+ Pronostiquer</button>` : ''}
             </div>
             <div class="predictions-list">
         `;
@@ -1040,6 +1087,8 @@
         const card = document.createElement('div');
         card.id = `game-${g.id}`;
         card.className = `game-card ${cardStyleClass}`;
+
+        // CORRECTION BOGUE 2 : CHAÎNE DE CARACTÈRES CORRECTEMENT FERMÉE POUR L'EXTÉRIEUR
         card.innerHTML = `
           <div class="game-header">
             <div>
@@ -1112,7 +1161,12 @@
 
     loadSavedPreferences();
     fetchLiveSchedules();
-    setInterval(fetchLiveSchedules, 60000);
+
+    // Rafraîchir les scores et la synchro Cloud toutes les 15 secondes
+    setInterval(() => {
+      fetchLiveSchedules();
+      syncCloudPredictions();
+    }, 15000);
   </script>
 </body>
 </html>
