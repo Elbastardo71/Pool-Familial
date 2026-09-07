@@ -47,7 +47,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding-right: 40px; /* Espace réservé au bouton */
+      padding-right: 40px;
     }
 
     h1 { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px; }
@@ -87,14 +87,16 @@
 
     .settings-panel.active { display: flex; }
 
+    /* RANGEMENT ADAPTATIF POUR MOBILE (CORRECTIF 2) */
     .settings-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 10px;
+      flex-wrap: wrap;
     }
 
-    /* INTERRUPTEUR STYLISE (TOGGLE SWITCH) */
+    /* INTERRUPTEUR STYLISÉ */
     .switch {
       position: relative;
       display: inline-block;
@@ -102,11 +104,7 @@
       height: 24px;
     }
 
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
+    .switch input { opacity: 0; width: 0; height: 0; }
 
     .slider {
       position: absolute;
@@ -129,18 +127,10 @@
       border-radius: 50%;
     }
 
-    input:checked + .slider {
-      background-color: var(--accent-blue);
-    }
+    input:checked + .slider { background-color: var(--accent-blue); }
+    input:checked + .slider:before { transform: translateX(20px); }
 
-    input:checked + .slider:before {
-      transform: translateX(20px);
-    }
-
-    .theme-options {
-      display: flex;
-      gap: 6px;
-    }
+    .theme-options { display: flex; gap: 6px; }
 
     .theme-btn {
       background: #1e293b;
@@ -207,10 +197,18 @@
     .countdown-timer { background: rgba(15, 23, 42, 0.6); border-radius: 10px; padding: 8px 12px; text-align: center; font-size: 1.1rem; font-weight: 800; color: var(--accent-blue); border: 1px solid rgba(56, 189, 248, 0.2); }
     .habs-next .countdown-timer { color: var(--accent-red); border-color: rgba(239, 68, 68, 0.3); }
 
-    /* LEADERBOARD */
+    /* LEADERBOARD & AURA DORÉE (GLOW EFFECT DU 1ER RANG) */
     .section-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; color: var(--text-muted); text-transform: uppercase; }
     .leaderboard { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
-    .leader-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(8px); }
+    .leader-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(8px); transition: all 0.3s ease; }
+    
+    /* STYLE MENEUR DE TÊTE (1RE PLACE) */
+    .leader-card.first-place {
+      border: 1px solid var(--accent-gold);
+      background: linear-gradient(135deg, rgba(var(--card-bg-rgb), var(--card-opacity)) 0%, rgba(50, 40, 15, var(--card-opacity)) 100%);
+      box-shadow: 0 0 18px rgba(251, 191, 36, 0.35);
+    }
+
     .leader-name { font-weight: 700; font-size: 1rem; }
     .leader-teams { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .leader-team-item { display: flex; align-items: center; gap: 4px; text-decoration: none; color: inherit; }
@@ -262,7 +260,7 @@
     <button class="settings-btn" onclick="toggleSettings()" title="Personnaliser l'apparence">⚙️</button>
   </header>
 
-  <!-- PANNEAU DE CONFIGURATION APPARENCE & FILTRES D'AFFICHAGE -->
+  <!-- PANNEAU DE CONFIGURATION APPARENCE & FILTRES -->
   <div class="settings-panel" id="settingsPanel">
     <div class="settings-row">
       <span>Masquer les matchs terminés :</span>
@@ -295,14 +293,16 @@
       <div class="next-game-teams">
         <div class="next-team away">
           <a id="nextAwayLink" href="#" target="_blank">
-            <img id="nextAwayLogo" class="next-team-logo" src="" alt="">
+            <!-- REPLI ERREUR D'IMAGE (CORRECTIF 3) -->
+            <img id="nextAwayLogo" class="next-team-logo" src="" alt="" onerror="this.src='https://a.espncdn.com/i/teamlogos/default-team-logo.png'">
           </a>
           <a id="nextAwayNameLink" href="#" target="_blank" class="next-team-link"></a>
         </div>
         <span class="next-vs">@</span>
         <div class="next-team home">
           <a id="nextHomeLink" href="#" target="_blank">
-            <img id="nextHomeLogo" class="next-team-logo" src="" alt="">
+            <!-- REPLI ERREUR D'IMAGE (CORRECTIF 3) -->
+            <img id="nextHomeLogo" class="next-team-logo" src="" alt="" onerror="this.src='https://a.espncdn.com/i/teamlogos/default-team-logo.png'">
           </a>
           <a id="nextHomeNameLink" href="#" target="_blank" class="next-team-link"></a>
         </div>
@@ -334,7 +334,6 @@
     let previousScores = {};
     let hideFinished = false;
 
-    // GESTION DU PANNEAU DE CONFIGURATION
     function toggleSettings() {
       const panel = document.getElementById('settingsPanel');
       panel.classList.toggle('active');
@@ -366,23 +365,35 @@
 
     function updateOpacity(val) {
       document.documentElement.style.setProperty('--card-opacity', val);
-      document.getElementById('opacityVal').innerText = Math.round(val * 100) + '%';
+      const opacityValEl = document.getElementById('opacityVal');
+      if (opacityValEl) opacityValEl.innerText = Math.round(val * 100) + '%';
       localStorage.setItem('userOpacity', val);
     }
 
+    // CHARGEMENT SECURISÉ DES PRÉFÉRENCES (CORRECTIF 1)
     function loadSavedPreferences() {
       const savedTheme = localStorage.getItem('userTheme') || 'dark';
       const savedOpacity = localStorage.getItem('userOpacity') || '0.9';
       const savedHideFinished = localStorage.getItem('userHideFinished') === 'true';
       
       const themeBtn = document.querySelector(`.theme-btn[onclick*="${savedTheme}"]`);
-      setTheme(savedTheme, themeBtn);
+      if (themeBtn) {
+        setTheme(savedTheme, themeBtn);
+      } else {
+        setTheme('dark', document.querySelector('.theme-btn'));
+      }
 
-      document.getElementById('opacityRange').value = savedOpacity;
-      updateOpacity(savedOpacity);
+      const opacityRangeEl = document.getElementById('opacityRange');
+      if (opacityRangeEl) {
+        opacityRangeEl.value = savedOpacity;
+        updateOpacity(savedOpacity);
+      }
 
       hideFinished = savedHideFinished;
-      document.getElementById('hideFinishedToggle').checked = savedHideFinished;
+      const hideFinishedToggleEl = document.getElementById('hideFinishedToggle');
+      if (hideFinishedToggleEl) {
+        hideFinishedToggleEl.checked = savedHideFinished;
+      }
     }
 
     function getTeamLogoUrl(teamObj, league) {
@@ -566,6 +577,7 @@
       }
     }
 
+    // TABLEAU DES MENEURS AVEC AURA DORÉE SUR LE 1ER RANG
     function renderLeaderboard() {
       const scores = { "Martin": 0, "Véronique": 0, "Raphaëlle": 0 };
 
@@ -582,7 +594,7 @@
       const leaderboardEl = document.getElementById('leaderboard');
 
       leaderboardEl.innerHTML = sortedMembers.map((name, rank) => `
-        <div class="leader-card">
+        <div class="leader-card ${rank === 0 ? 'first-place' : ''}">
           <div>
             <div class="leader-name">${rank === 0 ? '👑 ' : ''}${name}</div>
             <div class="leader-teams">
