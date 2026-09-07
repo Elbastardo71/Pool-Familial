@@ -213,6 +213,7 @@
     .leader-team-item { display: flex; align-items: center; gap: 4px; text-decoration: none; color: inherit; }
     .leader-team-logo { width: 20px; height: 20px; object-fit: contain; }
     .leader-score { font-size: 1.4rem; font-weight: 800; color: var(--accent-gold); text-align: right; }
+    .leader-subscore { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; text-align: right; }
 
     /* CONTROLS & FILTERS */
     .controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
@@ -235,7 +236,6 @@
     .badge-owner { background-color: rgba(251, 191, 36, 0.15); color: var(--accent-gold); border: 1px solid rgba(251, 191, 36, 0.3); margin-left: 4px; }
     .badge-win { background-color: rgba(34, 197, 94, 0.2); color: var(--accent-green); border: 1px solid rgba(34, 197, 94, 0.4); margin-left: 4px; font-weight: 800; }
     
-    /* BADGE DOMICILE / EXTÉRIEUR CANADIENS (BLEU / BLANC / ROUGE) */
     .badge-home {
       background: linear-gradient(135deg, #001e62 0%, #af1e2d 100%);
       color: #ffffff;
@@ -268,6 +268,170 @@
     .game-footer { border-top: 1px dashed var(--border-color); padding-top: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-muted); }
     .channel { color: var(--accent-gold); font-weight: 600; }
 
+    /* SECTION PRONOSTICS EN BAS DE CARTE DE MATCH */
+    .predictions-box {
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 8px;
+      margin-top: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .predictions-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--accent-blue);
+    }
+
+    .predictions-list {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .pred-chip {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 4px 8px;
+      font-size: 0.7rem;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .pred-chip.exact-match {
+      border-color: var(--accent-gold);
+      background: rgba(251, 191, 36, 0.15);
+      color: var(--accent-gold);
+      font-weight: 800;
+    }
+
+    .pred-chip.diff-match {
+      border-color: var(--accent-green);
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--accent-green);
+      font-weight: 700;
+    }
+
+    .pred-btn {
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid var(--accent-blue);
+      color: var(--accent-blue);
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .pred-btn:hover {
+      background: var(--accent-blue);
+      color: #0f172a;
+    }
+
+    /* MODALE PRONOSTIC */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal-card {
+      background: #1e293b;
+      border: 1px solid var(--accent-blue);
+      border-radius: 16px;
+      padding: 18px 20px;
+      width: 100%;
+      max-width: 360px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    }
+
+    .modal-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text-main);
+      text-align: center;
+    }
+
+    .modal-subtitle {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: -8px;
+    }
+
+    .modal-select, .modal-input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      background-color: #0f172a;
+      color: var(--text-main);
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .modal-inputs-group {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .modal-team-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      width: 40%;
+    }
+
+    .modal-score-input {
+      width: 50px;
+      text-align: center;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background-color: #0f172a;
+      color: var(--accent-gold);
+      font-size: 1.1rem;
+      font-weight: 800;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .modal-btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+    }
+
+    .modal-btn.cancel { background: #334155; color: var(--text-muted); }
+    .modal-btn.save { background: var(--accent-blue); color: #0f172a; }
+
     /* BOUTON FLOTTANT SCROLL VERS AUJOURD'HUI */
     .scroll-today-btn {
       position: fixed;
@@ -289,9 +453,7 @@
       transition: all 0.3s ease;
     }
 
-    .scroll-today-btn:active {
-      transform: scale(0.95);
-    }
+    .scroll-today-btn:active { transform: scale(0.95); }
   </style>
 </head>
 <body>
@@ -351,9 +513,13 @@
     </div>
   </section>
 
+  <!-- TABLEAUX DES MENEURS (VICTOIRES NFL + POOL PRONOSTICS D'ÉCART) -->
   <section>
-    <div class="section-title">Tableau des Meneurs Pool NFL</div>
+    <div class="section-title">Tableau des Meneurs Pool NFL (Victoires)</div>
     <div class="leaderboard" id="leaderboard"></div>
+
+    <div class="section-title" style="margin-top: 16px;">🏆 Classement Pronostics (Scores Exacts / Écarts)</div>
+    <div class="leaderboard" id="predictionsLeaderboard"></div>
   </section>
 
   <section class="controls">
@@ -369,7 +535,39 @@
 
   <main class="games-list" id="gamesContainer"></main>
 
-  <!-- BOUTON FLOTTANT POUR DÉFILER JUSQU'AU MATCH DU JOUR / PROCHAIN MATCH -->
+  <!-- MODALE POUR ENTRER UN PRONOSTIC -->
+  <div class="modal-overlay" id="predModal">
+    <div class="modal-card">
+      <div class="modal-title">🎯 Pronostiquer le score</div>
+      <div class="modal-subtitle" id="modalMatchName">Match</div>
+      
+      <div>
+        <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Participant :</label>
+        <select class="modal-select" id="modalUserSelect">
+          <option value="Martin">Martin</option>
+          <option value="Véronique">Véronique</option>
+          <option value="Raphaëlle">Raphaëlle</option>
+        </select>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div class="modal-inputs-group">
+          <span class="modal-team-label" id="modalAwayName">Visiteur</span>
+          <input type="number" class="modal-score-input" id="modalAwayScore" min="0" max="99" value="24">
+        </div>
+        <div class="modal-inputs-group">
+          <span class="modal-team-label" id="modalHomeName">Hôte</span>
+          <input type="number" class="modal-score-input" id="modalHomeScore" min="0" max="99" value="17">
+        </div>
+      </div>
+
+      <div class="modal-buttons">
+        <button class="modal-btn cancel" onclick="closePredModal()">Annuler</button>
+        <button class="modal-btn save" onclick="savePrediction()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
   <button class="scroll-today-btn" onclick="scrollToToday()" id="scrollTodayBtn" title="Sauter au match du jour">
     📅 Aujourd'hui
   </button>
@@ -378,6 +576,8 @@
     let countdownInterval = null;
     let previousScores = {};
     let hideFinished = false;
+    let userPredictions = {}; // { gameId: { Martin: {away: 24, home: 17}, ... } }
+    let currentPredGame = null;
 
     function toggleSettings() {
       const panel = document.getElementById('settingsPanel');
@@ -419,13 +619,15 @@
       const savedTheme = localStorage.getItem('userTheme') || 'dark';
       const savedOpacity = localStorage.getItem('userOpacity') || '0.9';
       const savedHideFinished = localStorage.getItem('userHideFinished') === 'true';
+      const savedPreds = localStorage.getItem('userPredictions');
+
+      if (savedPreds) {
+        try { userPredictions = JSON.parse(savedPreds); } catch (e) { userPredictions = {}; }
+      }
       
       const themeBtn = document.querySelector(`.theme-btn[onclick*="${savedTheme}"]`);
-      if (themeBtn) {
-        setTheme(savedTheme, themeBtn);
-      } else {
-        setTheme('dark', document.querySelector('.theme-btn'));
-      }
+      if (themeBtn) setTheme(savedTheme, themeBtn);
+      else setTheme('dark', document.querySelector('.theme-btn'));
 
       const opacityRangeEl = document.getElementById('opacityRange');
       if (opacityRangeEl) {
@@ -435,9 +637,7 @@
 
       hideFinished = savedHideFinished;
       const hideFinishedToggleEl = document.getElementById('hideFinishedToggle');
-      if (hideFinishedToggleEl) {
-        hideFinishedToggleEl.checked = savedHideFinished;
-      }
+      if (hideFinishedToggleEl) hideFinishedToggleEl.checked = savedHideFinished;
     }
 
     function getTeamLogoUrl(teamObj, league) {
@@ -508,6 +708,36 @@
       return owners;
     }
 
+    function openPredModal(gameId, awayName, homeName) {
+      currentPredGame = gameId;
+      document.getElementById('modalMatchName').innerText = `${awayName} @ ${homeName}`;
+      document.getElementById('modalAwayName').innerText = awayName;
+      document.getElementById('modalHomeName').innerText = homeName;
+      document.getElementById('predModal').classList.add('active');
+    }
+
+    function closePredModal() {
+      document.getElementById('predModal').classList.remove('active');
+      currentPredGame = null;
+    }
+
+    function savePrediction() {
+      if (!currentPredGame) return;
+      const user = document.getElementById('modalUserSelect').value;
+      const awayScore = parseInt(document.getElementById('modalAwayScore').value) || 0;
+      const homeScore = parseInt(document.getElementById('modalHomeScore').value) || 0;
+
+      if (!userPredictions[currentPredGame]) {
+        userPredictions[currentPredGame] = {};
+      }
+      userPredictions[currentPredGame][user] = { away: awayScore, home: homeScore };
+
+      localStorage.setItem('userPredictions', JSON.stringify(userPredictions));
+      closePredModal();
+      renderGames(document.getElementById('searchInput').value);
+      renderPredictionsLeaderboard();
+    }
+
     function renderNextGameCard() {
       const now = new Date();
       const nextGame = allGames.find(g => g.rawDate > now && g.status === 'pre');
@@ -522,11 +752,8 @@
       const isHabs = nextGame.league === 'LNH';
 
       cardSection.style.display = 'block';
-      if (isHabs) {
-        cardEl.classList.add('habs-next');
-      } else {
-        cardEl.classList.remove('habs-next');
-      }
+      if (isHabs) cardEl.classList.add('habs-next');
+      else cardEl.classList.remove('habs-next');
 
       const awayUrl = getStatsUrl(nextGame.awayTeamObj, nextGame.league);
       const homeUrl = getStatsUrl(nextGame.homeTeamObj, nextGame.league);
@@ -599,8 +826,8 @@
             homeLogo: getTeamLogoUrl(home.team, league),
             awayTeam: away.team.displayName || away.team.name,
             awayLogo: getTeamLogoUrl(away.team, league),
-            homeScore: home.score?.value ?? home.score ?? '0',
-            awayScore: away.score?.value ?? away.score ?? '0',
+            homeScore: parseInt(home.score?.value ?? home.score ?? '0'),
+            awayScore: parseInt(away.score?.value ?? away.score ?? '0'),
             status: event.status?.type?.state || 'pre',
             statusDetail: event.status?.type?.shortDetail || '',
             winner: event.status?.type?.state === 'post' ? (parseInt(home.score) > parseInt(away.score) ? home.team.displayName : away.team.displayName) : null,
@@ -615,6 +842,7 @@
 
         renderNextGameCard();
         renderLeaderboard();
+        renderPredictionsLeaderboard();
         renderGames();
       } catch (err) {
         console.error("Erreur de synchronisation :", err);
@@ -654,6 +882,50 @@
             </div>
           </div>
           <div class="leader-score">${scores[name]} <span style="font-size:0.7rem; color:var(--text-muted)">PTS</span></div>
+        </div>
+      `).join('');
+    }
+
+    // CALCUL ET RENDU DU DEUXIÈME CLASSEMENT PARALLÈLE (PRONOSTICS DE SCORE)
+    function renderPredictionsLeaderboard() {
+      const stats = {
+        "Martin": { pts: 0, exact: 0, diff: 0 },
+        "Véronique": { pts: 0, exact: 0, diff: 0 },
+        "Raphaëlle": { pts: 0, exact: 0, diff: 0 }
+      };
+
+      allGames.forEach(game => {
+        if (game.status === 'post' && userPredictions[game.id]) {
+          const actualAway = game.awayScore;
+          const actualHome = game.homeScore;
+          const actualDiff = actualAway - actualHome;
+
+          Object.keys(members).forEach(user => {
+            const pred = userPredictions[game.id][user];
+            if (pred) {
+              const predDiff = pred.away - pred.home;
+              if (pred.away === actualAway && pred.home === actualHome) {
+                stats[user].pts += 3; // Score exact = 3 points
+                stats[user].exact += 1;
+              } else if (predDiff === actualDiff) {
+                stats[user].pts += 1; // Bon écart de points = 1 point
+                stats[user].diff += 1;
+              }
+            }
+          });
+        }
+      });
+
+      const sortedUsers = Object.keys(stats).sort((a, b) => stats[b].pts - stats[a].pts || stats[b].exact - stats[a].exact);
+      const container = document.getElementById('predictionsLeaderboard');
+
+      container.innerHTML = sortedUsers.map((name, rank) => `
+        <div class="leader-card ${rank === 0 && stats[name].pts > 0 ? 'first-place' : ''}">
+          <div>
+            <div class="leader-name">${rank === 0 && stats[name].pts > 0 ? '👑 ' : ''}${name}</div>
+            <div class="leader-subscore">🎯 ${stats[name].exact} exact(s) | 📐 ${stats[name].diff} bon(s) écart(s)</div>
+          </div>
+          <div class="leader-score">${stats[name].pts} <span style="font-size:0.7rem; color:var(--text-muted)">PTS</span></div>
         </div>
       `).join('');
     }
@@ -719,11 +991,51 @@
         previousScores[homeScoreKey] = g.homeScore;
 
         let cardStyleClass = 'nfl-card';
-        if (isPoolWin) {
-          cardStyleClass = 'pool-win';
-        } else if (isHabs) {
-          cardStyleClass = 'habs-card';
+        if (isPoolWin) cardStyleClass = 'pool-win';
+        else if (isHabs) cardStyleClass = 'habs-card';
+
+        // GESTION DES PRONOSTICS D'ÉQUIPE POUR CETTE CARTE
+        const gamePreds = userPredictions[g.id] || {};
+        const isPreGame = g.rawDate > now && g.status === 'pre';
+
+        let predictionsHtml = `
+          <div class="predictions-box">
+            <div class="predictions-title-row">
+              <span>🎯 Pronostics</span>
+              ${isPreGame ? `<button class="pred-btn" onclick="openPredModal('${g.id}', '${g.awayTeam.replace(/'/g, "\\'")}', '${g.homeTeam.replace(/'/g, "\\'")}')">+ Pronostiquer</button>` : ''}
+            </div>
+            <div class="predictions-list">
+        `;
+
+        const usersWithPreds = Object.keys(gamePreds);
+        if (usersWithPreds.length === 0) {
+          predictionsHtml += `<span style="font-size:0.68rem; color:var(--text-muted)">Aucun pronostic enregistré</span>`;
+        } else {
+          usersWithPreds.forEach(user => {
+            const p = gamePreds[user];
+            let chipClass = '';
+            let tag = '';
+
+            if (g.status === 'post') {
+              const actualDiff = g.awayScore - g.homeScore;
+              const predDiff = p.away - p.home;
+              if (p.away === g.awayScore && p.home === g.homeScore) {
+                chipClass = 'exact-match';
+                tag = ' (+3 PTS)';
+              } else if (predDiff === actualDiff) {
+                chipClass = 'diff-match';
+                tag = ' (+1 PTS)';
+              }
+            }
+
+            predictionsHtml += `
+              <div class="pred-chip ${chipClass}">
+                <strong>${user}:</strong> ${p.away}-${p.home}${tag}
+              </div>
+            `;
+          });
         }
+        predictionsHtml += `</div></div>`;
 
         const card = document.createElement('div');
         card.id = `game-${g.id}`;
@@ -766,6 +1078,8 @@
             <span>Diffusion : <strong class="channel">${g.channel}</strong></span>
             <span>${g.status === 'post' ? 'Terminé' : g.statusDetail}</span>
           </div>
+
+          ${predictionsHtml}
         `;
         container.appendChild(card);
       });
@@ -782,9 +1096,7 @@
         }
       }
       const container = document.getElementById('gamesContainer');
-      if (container) {
-        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      if (container) container.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function setFilter(filter, btn) {
