@@ -22,6 +22,30 @@
       --accent-gold: #fbbf24;
       --accent-green: #22c55e;
       --border-color: rgba(51, 65, 85, 0.8);
+      --chip-bg: rgba(15, 23, 42, 0.6);
+      --panel-bg: rgba(15, 23, 42, 0.95);
+      --modal-bg: #1e293b;
+      --input-bg: #0f172a;
+    }
+
+    /* CLASSE POUR LE MODE CLAIR */
+    body.light-mode {
+      --bg-main: #f1f5f9;
+      --bg-image: none;
+      --card-bg-rgb: 255, 255, 255;
+      --card-opacity: 0.95;
+      --card-bg: rgba(var(--card-bg-rgb), var(--card-opacity));
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --accent-blue: #0284c7;
+      --accent-red: #dc2626;
+      --accent-gold: #d97706;
+      --accent-green: #16a34a;
+      --border-color: rgba(203, 213, 225, 0.9);
+      --chip-bg: rgba(241, 245, 249, 0.9);
+      --panel-bg: rgba(255, 255, 255, 0.98);
+      --modal-bg: #ffffff;
+      --input-bg: #f8fafc;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -35,7 +59,7 @@
       color: var(--text-main); 
       padding: calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 80px) 16px; 
       min-height: 100vh; 
-      transition: background 0.3s ease;
+      transition: background 0.3s ease, color 0.3s ease;
       scroll-behavior: smooth;
     }
 
@@ -57,7 +81,7 @@
       top: 0;
       right: 0;
       z-index: 100;
-      background: #1e293b;
+      background: var(--card-bg);
       border: 1px solid var(--border-color);
       color: var(--text-main);
       width: 38px;
@@ -68,17 +92,17 @@
       justify-content: center;
       font-size: 1.2rem;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
 
     .settings-panel {
       display: none;
-      background: rgba(15, 23, 42, 0.95);
+      background: var(--panel-bg);
       border: 1px solid var(--accent-blue);
       border-radius: 14px;
       padding: 14px 16px;
       margin-bottom: 20px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.6);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
       backdrop-filter: blur(12px);
       flex-direction: column;
       gap: 12px;
@@ -108,7 +132,7 @@
       position: absolute;
       cursor: pointer;
       top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #334155;
+      background-color: #94a3b8;
       transition: .3s;
       border-radius: 24px;
     }
@@ -128,10 +152,10 @@
     input:checked + .slider { background-color: var(--accent-blue); }
     input:checked + .slider:before { transform: translateX(20px); }
 
-    .theme-options { display: flex; gap: 6px; }
+    .theme-options { display: flex; gap: 4px; flex-wrap: wrap; }
 
     .theme-btn {
-      background: #1e293b;
+      background: var(--card-bg);
       border: 1px solid var(--border-color);
       color: var(--text-muted);
       padding: 6px 10px;
@@ -144,7 +168,7 @@
     .theme-btn.active {
       border-color: var(--accent-blue);
       color: var(--accent-blue);
-      background: rgba(56, 189, 248, 0.1);
+      background: rgba(56, 189, 248, 0.15);
     }
 
     .status-bar { font-size: 0.75rem; color: var(--accent-green); margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; }
@@ -158,19 +182,19 @@
 
     @keyframes scoreFlash {
       0% { color: var(--accent-gold); transform: scale(1); }
-      50% { color: #ffffff; text-shadow: 0 0 15px var(--accent-gold); transform: scale(1.35); }
+      50% { text-shadow: 0 0 15px var(--accent-gold); transform: scale(1.35); }
       100% { color: var(--accent-gold); transform: scale(1); }
     }
 
     .score-updated { animation: scoreFlash 1.2s ease-in-out; }
 
     .next-game-card {
-      background: linear-gradient(135deg, rgba(var(--card-bg-rgb), var(--card-opacity)) 0%, rgba(15, 23, 42, var(--card-opacity)) 100%);
+      background: var(--card-bg);
       border: 1px solid var(--accent-blue);
       border-radius: 16px;
       padding: 14px 16px;
       margin-bottom: 20px;
-      box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
+      box-shadow: 0 4px 20px rgba(56, 189, 248, 0.15);
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -179,7 +203,7 @@
 
     .next-game-card.habs-next {
       border-color: var(--accent-red);
-      box-shadow: 0 0 20px rgba(239, 68, 68, 0.25);
+      box-shadow: 0 4px 20px rgba(239, 68, 68, 0.15);
     }
 
     .next-game-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; font-weight: 700; color: var(--accent-gold); text-transform: uppercase; }
@@ -187,12 +211,12 @@
     .next-team { display: flex; align-items: center; gap: 8px; width: 42%; }
     .next-team.away { justify-content: flex-start; text-align: left; }
     .next-team.home { justify-content: flex-end; text-align: right; flex-row-reverse: row-reverse; }
-    .next-team-logo { width: 36px; height: 36px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+    .next-team-logo { width: 36px; height: 36px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); }
     .next-team-link { color: var(--text-main); text-decoration: none; font-size: 0.95rem; font-weight: 700; line-height: 1.2; }
     .next-team-link:hover { color: var(--accent-blue); text-decoration: underline; }
     .next-vs { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; }
-    .countdown-timer { background: rgba(15, 23, 42, 0.6); border-radius: 10px; padding: 8px 12px; text-align: center; font-size: 1.1rem; font-weight: 800; color: var(--accent-blue); border: 1px solid rgba(56, 189, 248, 0.2); }
-    .habs-next .countdown-timer { color: var(--accent-red); border-color: rgba(239, 68, 68, 0.3); }
+    .countdown-timer { background: var(--input-bg); border-radius: 10px; padding: 8px 12px; text-align: center; font-size: 1.1rem; font-weight: 800; color: var(--accent-blue); border: 1px solid var(--border-color); }
+    .habs-next .countdown-timer { color: var(--accent-red); }
 
     .section-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; color: var(--text-muted); text-transform: uppercase; }
     .leaderboard { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
@@ -200,8 +224,7 @@
     
     .leader-card.first-place {
       border: 1px solid var(--accent-gold);
-      background: linear-gradient(135deg, rgba(var(--card-bg-rgb), var(--card-opacity)) 0%, rgba(50, 40, 15, var(--card-opacity)) 100%);
-      box-shadow: 0 0 18px rgba(251, 191, 36, 0.35);
+      box-shadow: 0 0 18px rgba(251, 191, 36, 0.25);
     }
 
     .leader-name { font-weight: 700; font-size: 1rem; }
@@ -215,13 +238,13 @@
     .search-input { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-main); font-size: 0.95rem; outline: none; backdrop-filter: blur(8px); }
     .filter-group { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
     .filter-btn { background-color: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-muted); padding: 8px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; cursor: pointer; backdrop-filter: blur(8px); }
-    .filter-btn.active { background-color: var(--accent-blue); color: #0f172a; border-color: var(--accent-blue); font-weight: 700; }
+    .filter-btn.active { background-color: var(--accent-blue); color: #ffffff; border-color: var(--accent-blue); font-weight: 700; }
 
     .games-list { display: flex; flex-direction: column; gap: 12px; }
     .game-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; backdrop-filter: blur(8px); }
-    .game-card.nfl-card { border-left: 4px solid var(--accent-blue); background: linear-gradient(135deg, rgba(var(--card-bg-rgb), var(--card-opacity)) 0%, rgba(15, 23, 42, var(--card-opacity)) 100%); }
-    .game-card.habs-card { border-left: 4px solid var(--accent-red); background: linear-gradient(135deg, rgba(var(--card-bg-rgb), var(--card-opacity)) 0%, rgba(45, 15, 25, var(--card-opacity)) 100%); }
-    .game-card.pool-win { border: 1px solid var(--accent-green); border-left: 5px solid var(--accent-green); background: linear-gradient(135deg, rgba(var(--card-bg-rgb), var(--card-opacity)) 0%, rgba(20, 50, 35, var(--card-opacity)) 100%); }
+    .game-card.nfl-card { border-left: 4px solid var(--accent-blue); }
+    .game-card.habs-card { border-left: 4px solid var(--accent-red); }
+    .game-card.pool-win { border: 1px solid var(--accent-green); border-left: 5px solid var(--accent-green); }
 
     .game-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; font-weight: 700; flex-wrap: wrap; gap: 4px; }
     .badge { padding: 3px 7px; border-radius: 6px; text-transform: uppercase; font-size: 0.68rem; }
@@ -236,13 +259,12 @@
       border: 1px solid #ffffff;
       font-weight: 800;
       margin-left: 4px;
-      box-shadow: 0 2px 6px rgba(175, 30, 45, 0.4);
     }
 
     .badge-away {
       background-color: rgba(148, 163, 184, 0.15);
-      color: #cbd5e1;
-      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
       margin-left: 4px;
     }
 
@@ -252,7 +274,7 @@
     .team { display: flex; align-items: center; gap: 8px; width: 42%; }
     .team.away { justify-content: flex-start; text-align: left; }
     .team.home { justify-content: flex-end; text-align: right; flex-row-reverse: row-reverse; }
-    .team-logo { width: 34px; height: 34px; object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+    .team-logo { width: 34px; height: 34px; object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15)); }
     .team-info { display: flex; flex-direction: column; }
     .team-link { color: var(--text-main); text-decoration: none; }
     .team-link:hover { color: var(--accent-blue); text-decoration: underline; }
@@ -263,7 +285,7 @@
     .channel { color: var(--accent-gold); font-weight: 600; }
 
     .predictions-box {
-      border-top: 1px solid rgba(255,255,255,0.08);
+      border-top: 1px solid var(--border-color);
       padding-top: 8px;
       margin-top: 4px;
       display: flex;
@@ -287,14 +309,14 @@
     }
 
     .pred-chip {
-      background: rgba(15, 23, 42, 0.6);
+      background: var(--chip-bg);
       border: 1px solid var(--border-color);
       border-radius: 8px;
       padding: 4px 8px;
       font-size: 0.7rem;
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
     }
 
     .pred-chip.exact-match {
@@ -311,6 +333,25 @@
       font-weight: 700;
     }
 
+    /* BOUTON SUPPRIMER PRONOSTIQUE (x) */
+    .delete-pred-btn {
+      background: none;
+      border: none;
+      color: var(--accent-red);
+      font-weight: 800;
+      font-size: 0.85rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 2px;
+      border-radius: 4px;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+
+    .delete-pred-btn:hover {
+      opacity: 1;
+    }
+
     .pred-btn {
       background: rgba(56, 189, 248, 0.12);
       border: 1px solid var(--accent-blue);
@@ -325,14 +366,14 @@
 
     .pred-btn:hover {
       background: var(--accent-blue);
-      color: #0f172a;
+      color: #ffffff;
     }
 
     .modal-overlay {
       display: none;
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.75);
+      background: rgba(0, 0, 0, 0.6);
       backdrop-filter: blur(8px);
       z-index: 200;
       align-items: center;
@@ -343,7 +384,7 @@
     .modal-overlay.active { display: flex; }
 
     .modal-card {
-      background: #1e293b;
+      background: var(--modal-bg);
       border: 1px solid var(--accent-blue);
       border-radius: 16px;
       padding: 18px 20px;
@@ -352,7 +393,7 @@
       display: flex;
       flex-direction: column;
       gap: 14px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
 
     .modal-title {
@@ -374,7 +415,7 @@
       padding: 10px 12px;
       border-radius: 10px;
       border: 1px solid var(--border-color);
-      background-color: #0f172a;
+      background-color: var(--input-bg);
       color: var(--text-main);
       font-size: 0.9rem;
       outline: none;
@@ -399,7 +440,7 @@
       padding: 8px;
       border-radius: 8px;
       border: 1px solid var(--border-color);
-      background-color: #0f172a;
+      background-color: var(--input-bg);
       color: var(--accent-gold);
       font-size: 1.1rem;
       font-weight: 800;
@@ -421,8 +462,8 @@
       cursor: pointer;
     }
 
-    .modal-btn.cancel { background: #334155; color: var(--text-muted); }
-    .modal-btn.save { background: var(--accent-blue); color: #0f172a; }
+    .modal-btn.cancel { background: #64748b; color: #ffffff; }
+    .modal-btn.save { background: var(--accent-blue); color: #ffffff; }
 
     .scroll-today-btn {
       position: fixed;
@@ -430,7 +471,7 @@
       right: 16px;
       z-index: 99;
       background: linear-gradient(135deg, var(--accent-blue) 0%, #0284c7 100%);
-      color: #0f172a;
+      color: #ffffff;
       border: none;
       border-radius: 24px;
       padding: 10px 16px;
@@ -467,6 +508,7 @@
       <span>Thème de fond :</span>
       <div class="theme-options">
         <button class="theme-btn active" onclick="setTheme('dark', this)">Sombre</button>
+        <button class="theme-btn" onclick="setTheme('light', this)">Clair</button>
         <button class="theme-btn" onclick="setTheme('turf', this)">Pelouse</button>
         <button class="theme-btn" onclick="setTheme('ice', this)">Glace</button>
       </div>
@@ -560,7 +602,6 @@
   </button>
 
   <script>
-    // IDENTIFIANT ET CLE DE SECURITE METTRE A JOUR
     const CLOUD_BIN_ID = '6aa03e37ac6210605ab47bdf';
     const CLOUD_API_KEY = '$2a$10$XR93WjB2X6zfHAu5yg0yx.t5d8xfRMoDSHi3lKhb6cQJDijMPaqLG';
 
@@ -586,7 +627,11 @@
       if (btn) btn.classList.add('active');
 
       const root = document.documentElement;
-      if (theme === 'turf') {
+      document.body.classList.remove('light-mode');
+
+      if (theme === 'light') {
+        document.body.classList.add('light-mode');
+      } else if (theme === 'turf') {
         root.style.setProperty('--bg-main', '#06130a');
         root.style.setProperty('--bg-image', 'radial-gradient(circle at 50% 50%, rgba(34, 197, 94, 0.08) 0%, rgba(6, 19, 10, 0.95) 100%), repeating-linear-gradient(0deg, transparent, transparent 49px, rgba(255,255,255,0.03) 50px)');
       } else if (theme === 'ice') {
@@ -768,6 +813,20 @@
       renderPredictionsLeaderboard();
 
       await pushCloudPredictions();
+    }
+
+    // NOUVELLE FONCTION : SUPPRIMER UN PRONOSTIQUE
+    async function deletePrediction(gameId, user) {
+      if (userPredictions[gameId] && userPredictions[gameId][user]) {
+        delete userPredictions[gameId][user];
+        if (Object.keys(userPredictions[gameId]).length === 0) {
+          delete userPredictions[gameId];
+        }
+        localStorage.setItem('userPredictions', JSON.stringify(userPredictions));
+        renderGames(document.getElementById('searchInput').value);
+        renderPredictionsLeaderboard();
+        await pushCloudPredictions();
+      }
     }
 
     function renderNextGameCard() {
@@ -1063,7 +1122,8 @@
 
             predictionsHtml += `
               <div class="pred-chip ${chipClass}">
-                <strong>${user}:</strong> ${p.away}-${p.home}${tag}
+                <span><strong>${user}:</strong> ${p.away}-${p.home}${tag}</span>
+                ${isPreGame ? `<button class="delete-pred-btn" onclick="deletePrediction('${g.id}', '${user}')" title="Effacer ce pronostic">×</button>` : ''}
               </div>
             `;
           });
