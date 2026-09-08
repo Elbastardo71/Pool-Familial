@@ -39,7 +39,6 @@
       scroll-behavior: smooth;
     }
 
-    /* HEADER FIXATION & BOUTON SETTINGS SUR MOBILE */
     header { 
       margin-bottom: 16px; 
       text-align: center; 
@@ -96,7 +95,6 @@
       flex-wrap: wrap;
     }
 
-    /* INTERRUPTEUR STYLISÉ */
     .switch {
       position: relative;
       display: inline-block;
@@ -166,7 +164,6 @@
 
     .score-updated { animation: scoreFlash 1.2s ease-in-out; }
 
-    /* CARTE PROCHAIN MATCH */
     .next-game-card {
       background: linear-gradient(135deg, rgba(var(--card-bg-rgb), var(--card-opacity)) 0%, rgba(15, 23, 42, var(--card-opacity)) 100%);
       border: 1px solid var(--accent-blue);
@@ -197,7 +194,6 @@
     .countdown-timer { background: rgba(15, 23, 42, 0.6); border-radius: 10px; padding: 8px 12px; text-align: center; font-size: 1.1rem; font-weight: 800; color: var(--accent-blue); border: 1px solid rgba(56, 189, 248, 0.2); }
     .habs-next .countdown-timer { color: var(--accent-red); border-color: rgba(239, 68, 68, 0.3); }
 
-    /* LEADERBOARD & AURA DORÉE */
     .section-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; color: var(--text-muted); text-transform: uppercase; }
     .leaderboard { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
     .leader-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(8px); transition: all 0.3s ease; }
@@ -215,14 +211,12 @@
     .leader-score { font-size: 1.4rem; font-weight: 800; color: var(--accent-gold); text-align: right; }
     .leader-subscore { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; text-align: right; }
 
-    /* CONTROLS & FILTERS */
     .controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
     .search-input { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-main); font-size: 0.95rem; outline: none; backdrop-filter: blur(8px); }
     .filter-group { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
     .filter-btn { background-color: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-muted); padding: 8px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; cursor: pointer; backdrop-filter: blur(8px); }
     .filter-btn.active { background-color: var(--accent-blue); color: #0f172a; border-color: var(--accent-blue); font-weight: 700; }
 
-    /* GAME CARDS */
     .games-list { display: flex; flex-direction: column; gap: 12px; }
     .game-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; backdrop-filter: blur(8px); }
     .game-card.nfl-card { border-left: 4px solid var(--accent-blue); background: linear-gradient(135deg, rgba(var(--card-bg-rgb), var(--card-opacity)) 0%, rgba(15, 23, 42, var(--card-opacity)) 100%); }
@@ -268,7 +262,6 @@
     .game-footer { border-top: 1px dashed var(--border-color); padding-top: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-muted); }
     .channel { color: var(--accent-gold); font-weight: 600; }
 
-    /* SECTION PRONOSTICS EN BAS DE CARTE DE MATCH */
     .predictions-box {
       border-top: 1px solid rgba(255,255,255,0.08);
       padding-top: 8px;
@@ -335,7 +328,6 @@
       color: #0f172a;
     }
 
-    /* MODALE PRONOSTIC */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -432,7 +424,6 @@
     .modal-btn.cancel { background: #334155; color: var(--text-muted); }
     .modal-btn.save { background: var(--accent-blue); color: #0f172a; }
 
-    /* BOUTON FLOTTANT SCROLL VERS AUJOURD'HUI */
     .scroll-today-btn {
       position: fixed;
       bottom: calc(env(safe-area-inset-bottom) + 20px);
@@ -464,7 +455,6 @@
     <button class="settings-btn" onclick="toggleSettings()" title="Personnaliser l'apparence">⚙️</button>
   </header>
 
-  <!-- PANNEAU DE CONFIGURATION APPARENCE & FILTRES -->
   <div class="settings-panel" id="settingsPanel">
     <div class="settings-row">
       <span>Masquer les matchs terminés :</span>
@@ -487,7 +477,6 @@
     </div>
   </div>
 
-  <!-- CARTE PROCHAIN MATCH -->
   <section id="nextGameSection" style="display: none;">
     <div class="next-game-card" id="nextGameCard">
       <div class="next-game-header">
@@ -513,7 +502,6 @@
     </div>
   </section>
 
-  <!-- TABLEAUX DES MENEURS (VICTOIRES NFL + POOL PRONOSTICS D'ÉCART) -->
   <section>
     <div class="section-title">Tableau des Meneurs Pool NFL (Victoires)</div>
     <div class="leaderboard" id="leaderboard"></div>
@@ -535,7 +523,6 @@
 
   <main class="games-list" id="gamesContainer"></main>
 
-  <!-- MODALE POUR ENTRER UN PRONOSTIC -->
   <div class="modal-overlay" id="predModal">
     <div class="modal-card">
       <div class="modal-title">🎯 Pronostiquer le score</div>
@@ -573,8 +560,8 @@
   </button>
 
   <script>
-    // VOS CLÉS D'ACCÈS JSONBIN SYNCHRONISÉES CLOUD
-    const CLOUD_BIN_ID = '6aa0030bac6210605ab37cf3';
+    // IDENTIFIANT ET CLE DE SECURITE METTRE A JOUR
+    const CLOUD_BIN_ID = '6aa03e37ac6210605ab47bdf';
     const CLOUD_API_KEY = '$2a$10$XR93WjB2X6zfHAu5yg0yx.t5d8xfRMoDSHi3lKhb6cQJDijMPaqLG';
 
     let countdownInterval = null;
@@ -619,13 +606,11 @@
       localStorage.setItem('userOpacity', val);
     }
 
-    // Récupération automatique depuis le cloud (Compatible iOS Safari)
     async function syncCloudPredictions() {
       try {
         const res = await fetch(`https://api.jsonbin.io/v3/b/${CLOUD_BIN_ID}/latest?nocache=${Date.now()}`, {
           headers: { 
-            'X-Master-Key': CLOUD_API_KEY,
-            'Cache-Control': 'no-cache'
+            'X-Master-Key': CLOUD_API_KEY
           }
         });
         if (res.ok) {
@@ -638,24 +623,22 @@
           }
         }
       } catch (e) {
-        console.warn("Mode hors ligne ou connexion cloud temporairement indisponible.");
+        console.warn("Synchro Cloud momentanément indisponible.");
       }
     }
 
-    // Envoi instantané vers le cloud lors d'un pronostic
     async function pushCloudPredictions() {
       try {
         await fetch(`https://api.jsonbin.io/v3/b/${CLOUD_BIN_ID}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'X-Master-Key': CLOUD_API_KEY,
-            'Cache-Control': 'no-cache'
+            'X-Master-Key': CLOUD_API_KEY
           },
           body: JSON.stringify(userPredictions)
         });
       } catch (e) {
-        console.error("Erreur d'envoi vers le cloud :", e);
+        console.error("Erreur de sauvegarde cloud :", e);
       }
     }
 
@@ -683,7 +666,6 @@
       const hideFinishedToggleEl = document.getElementById('hideFinishedToggle');
       if (hideFinishedToggleEl) hideFinishedToggleEl.checked = savedHideFinished;
 
-      // Charger les données du cloud dès l'ouverture
       syncCloudPredictions();
     }
 
@@ -779,14 +761,12 @@
       }
       userPredictions[currentPredGame][user] = { away: awayScore, home: homeScore };
 
-      // 1. Sauvegarde locale immédiate
       localStorage.setItem('userPredictions', JSON.stringify(userPredictions));
       
       closePredModal();
       renderGames(document.getElementById('searchInput').value);
       renderPredictionsLeaderboard();
 
-      // 2. Synchronisation instantanée vers le Cloud
       await pushCloudPredictions();
     }
 
@@ -1167,7 +1147,6 @@
     loadSavedPreferences();
     fetchLiveSchedules();
 
-    // Rafraîchissement automatique des matchs et synchronisation du cloud aux 15 secondes
     setInterval(() => {
       fetchLiveSchedules();
       syncCloudPredictions();
