@@ -573,9 +573,9 @@
   </button>
 
   <script>
-    // SYNCHRONISATION EN LIGNE PC / MOBILE (JSONBin.io)
-    const CLOUD_BIN_ID = '673e44b9ad19ca34f8cd9012'; // Remplaçable par votre ID personnalisé
-    const CLOUD_API_KEY = '$2a$10$w8.9U5Z6sN7R6s4B5G6/u.eR5G6H7I8J9K0L1M2N3O4P5'; // Clé API publique de test
+    // VOS CLÉS D'ACCÈS JSONBIN SYNCHRONISÉES CLOUD
+    const CLOUD_BIN_ID = '6aa0030bac6210605ab37cf3';
+    const CLOUD_API_KEY = '$2a$10$XR93WjB2X6zfHAu5yg0yx.t5d8xfRMoDSHi3lKhb6cQJDijMPaqLG';
 
     let countdownInterval = null;
     let previousScores = {};
@@ -619,11 +619,14 @@
       localStorage.setItem('userOpacity', val);
     }
 
-    // Récupérer les pronostics partagés dans le cloud
+    // Récupération automatique depuis le cloud (Compatible iOS Safari)
     async function syncCloudPredictions() {
       try {
-        const res = await fetch(`https://api.jsonbin.io/v3/b/${CLOUD_BIN_ID}/latest`, {
-          headers: { 'X-Master-Key': CLOUD_API_KEY }
+        const res = await fetch(`https://api.jsonbin.io/v3/b/${CLOUD_BIN_ID}/latest?nocache=${Date.now()}`, {
+          headers: { 
+            'X-Master-Key': CLOUD_API_KEY,
+            'Cache-Control': 'no-cache'
+          }
         });
         if (res.ok) {
           const data = await res.json();
@@ -635,23 +638,24 @@
           }
         }
       } catch (e) {
-        console.warn("Connexion cloud indisponible, utilisation des données locales.");
+        console.warn("Mode hors ligne ou connexion cloud temporairement indisponible.");
       }
     }
 
-    // Envoyer les pronostics modifiés dans le cloud
+    // Envoi instantané vers le cloud lors d'un pronostic
     async function pushCloudPredictions() {
       try {
         await fetch(`https://api.jsonbin.io/v3/b/${CLOUD_BIN_ID}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'X-Master-Key': CLOUD_API_KEY
+            'X-Master-Key': CLOUD_API_KEY,
+            'Cache-Control': 'no-cache'
           },
           body: JSON.stringify(userPredictions)
         });
       } catch (e) {
-        console.error("Erreur de sauvegarde cloud :", e);
+        console.error("Erreur d'envoi vers le cloud :", e);
       }
     }
 
@@ -679,7 +683,7 @@
       const hideFinishedToggleEl = document.getElementById('hideFinishedToggle');
       if (hideFinishedToggleEl) hideFinishedToggleEl.checked = savedHideFinished;
 
-      // Charger la synchro cloud au lancement
+      // Charger les données du cloud dès l'ouverture
       syncCloudPredictions();
     }
 
@@ -764,7 +768,7 @@
       currentPredGame = null;
     }
 
-    function savePrediction() {
+    async function savePrediction() {
       if (!currentPredGame) return;
       const user = document.getElementById('modalUserSelect').value;
       const awayScore = parseInt(document.getElementById('modalAwayScore').value) || 0;
@@ -775,11 +779,15 @@
       }
       userPredictions[currentPredGame][user] = { away: awayScore, home: homeScore };
 
+      // 1. Sauvegarde locale immédiate
       localStorage.setItem('userPredictions', JSON.stringify(userPredictions));
-      pushCloudPredictions(); // Synchro Cloud
+      
       closePredModal();
       renderGames(document.getElementById('searchInput').value);
       renderPredictionsLeaderboard();
+
+      // 2. Synchronisation instantanée vers le Cloud
+      await pushCloudPredictions();
     }
 
     function renderNextGameCard() {
@@ -889,7 +897,7 @@
         renderPredictionsLeaderboard();
         renderGames();
       } catch (err) {
-        console.error("Erreur de synchronisation :", err);
+        console.error("Erreur de synchronisation des scores :", err);
       }
     }
 
@@ -930,7 +938,6 @@
       `).join('');
     }
 
-    // CORRECTION BOGUE 3 : GESTION DES ÉGALITÉS ET DU CALCUL D'ÉCART
     function renderPredictionsLeaderboard() {
       const stats = {
         "Martin": { pts: 0, exact: 0, diff: 0 },
@@ -1041,7 +1048,6 @@
         const gamePreds = userPredictions[g.id] || {};
         const isPreGame = g.rawDate > now && g.status === 'pre';
 
-        // CORRECTION BOGUE 1 : ÉCHAPPER DE FAÇON SÉCURISÉE LES APOSTROPHES DE NOMS D'ÉQUIPES
         const safeAwayName = g.awayTeam.replace(/'/g, "\\'");
         const safeHomeName = g.homeTeam.replace(/'/g, "\\'");
 
@@ -1088,7 +1094,6 @@
         card.id = `game-${g.id}`;
         card.className = `game-card ${cardStyleClass}`;
 
-        // CORRECTION BOGUE 2 : CHAÎNE DE CARACTÈRES CORRECTEMENT FERMÉE POUR L'EXTÉRIEUR
         card.innerHTML = `
           <div class="game-header">
             <div>
@@ -1162,7 +1167,7 @@
     loadSavedPreferences();
     fetchLiveSchedules();
 
-    // Rafraîchir les scores et la synchro Cloud toutes les 15 secondes
+    // Rafraîchissement automatique des matchs et synchronisation du cloud aux 15 secondes
     setInterval(() => {
       fetchLiveSchedules();
       syncCloudPredictions();
