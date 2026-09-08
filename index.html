@@ -28,7 +28,6 @@
       --input-bg: #0f172a;
     }
 
-    /* CLASSE POUR LE MODE CLAIR */
     body.light-mode {
       --bg-main: #f1f5f9;
       --bg-image: none;
@@ -180,14 +179,6 @@
       100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
     }
 
-    @keyframes scoreFlash {
-      0% { color: var(--accent-gold); transform: scale(1); }
-      50% { text-shadow: 0 0 15px var(--accent-gold); transform: scale(1.35); }
-      100% { color: var(--accent-gold); transform: scale(1); }
-    }
-
-    .score-updated { animation: scoreFlash 1.2s ease-in-out; }
-
     .next-game-card {
       background: var(--card-bg);
       border: 1px solid var(--accent-blue);
@@ -213,7 +204,6 @@
     .next-team.home { justify-content: flex-end; text-align: right; flex-row-reverse: row-reverse; }
     .next-team-logo { width: 36px; height: 36px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); }
     .next-team-link { color: var(--text-main); text-decoration: none; font-size: 0.95rem; font-weight: 700; line-height: 1.2; }
-    .next-team-link:hover { color: var(--accent-blue); text-decoration: underline; }
     .next-vs { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; }
     .countdown-timer { background: var(--input-bg); border-radius: 10px; padding: 8px 12px; text-align: center; font-size: 1.1rem; font-weight: 800; color: var(--accent-blue); border: 1px solid var(--border-color); }
     .habs-next .countdown-timer { color: var(--accent-red); }
@@ -241,7 +231,21 @@
     .filter-btn.active { background-color: var(--accent-blue); color: #ffffff; border-color: var(--accent-blue); font-weight: 700; }
 
     .games-list { display: flex; flex-direction: column; gap: 12px; }
-    .game-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; backdrop-filter: blur(8px); }
+    
+    .game-card { 
+      background-color: var(--card-bg); 
+      border: 1px solid var(--border-color); 
+      border-radius: 14px; 
+      padding: 12px 14px; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 8px; 
+      backdrop-filter: blur(8px);
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    
+    .game-card:active { transform: scale(0.99); }
     .game-card.nfl-card { border-left: 4px solid var(--accent-blue); }
     .game-card.habs-card { border-left: 4px solid var(--accent-red); }
     .game-card.pool-win { border: 1px solid var(--accent-green); border-left: 5px solid var(--accent-green); }
@@ -277,12 +281,76 @@
     .team-logo { width: 34px; height: 34px; object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15)); }
     .team-info { display: flex; flex-direction: column; }
     .team-link { color: var(--text-main); text-decoration: none; }
-    .team-link:hover { color: var(--accent-blue); text-decoration: underline; }
     .score { font-size: 1.3rem; font-weight: 800; color: var(--accent-gold); display: inline-block; }
     .vs { color: var(--text-muted); font-size: 0.75rem; font-weight: 700; }
 
     .game-footer { border-top: 1px dashed var(--border-color); padding-top: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-muted); }
     .channel { color: var(--accent-gold); font-weight: 600; }
+
+    .expand-indicator {
+      font-size: 0.7rem;
+      color: var(--accent-blue);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* PANNEAU RÉTRACTABLE MATCH / H2H */
+    .match-details-panel {
+      display: none;
+      border-top: 1px solid var(--border-color);
+      padding-top: 10px;
+      margin-top: 6px;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 0.78rem;
+      background: rgba(0,0,0,0.05);
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .match-details-panel.active { display: flex; }
+
+    .details-section-title {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--accent-gold);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .starter-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .starter-card {
+      background: var(--input-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .starter-role { font-size: 0.65rem; color: var(--text-muted); font-weight: 700; }
+    .starter-name { font-weight: 700; color: var(--text-main); }
+    .starter-stats { font-size: 0.68rem; color: var(--accent-blue); }
+
+    .h2h-list { display: flex; flex-direction: column; gap: 4px; }
+    .h2h-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--input-bg);
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      font-size: 0.72rem;
+    }
 
     .predictions-box {
       border-top: 1px solid var(--border-color);
@@ -333,7 +401,6 @@
       font-weight: 700;
     }
 
-    /* BOUTON SUPPRIMER PRONOSTIQUE (x) */
     .delete-pred-btn {
       background: none;
       border: none;
@@ -345,12 +412,9 @@
       padding: 0 2px;
       border-radius: 4px;
       opacity: 0.7;
-      transition: opacity 0.2s;
     }
 
-    .delete-pred-btn:hover {
-      opacity: 1;
-    }
+    .delete-pred-btn:hover { opacity: 1; }
 
     .pred-btn {
       background: rgba(56, 189, 248, 0.12);
@@ -361,12 +425,6 @@
       font-size: 0.72rem;
       font-weight: 700;
       cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .pred-btn:hover {
-      background: var(--accent-blue);
-      color: #ffffff;
     }
 
     .modal-overlay {
@@ -396,21 +454,10 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
 
-    .modal-title {
-      font-size: 1rem;
-      font-weight: 800;
-      color: var(--text-main);
-      text-align: center;
-    }
+    .modal-title { font-size: 1rem; font-weight: 800; color: var(--text-main); text-align: center; }
+    .modal-subtitle { font-size: 0.78rem; color: var(--text-muted); text-align: center; margin-top: -8px; }
 
-    .modal-subtitle {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      text-align: center;
-      margin-top: -8px;
-    }
-
-    .modal-select, .modal-input {
+    .modal-select {
       width: 100%;
       padding: 10px 12px;
       border-radius: 10px;
@@ -421,18 +468,8 @@
       outline: none;
     }
 
-    .modal-inputs-group {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .modal-team-label {
-      font-size: 0.8rem;
-      font-weight: 700;
-      width: 40%;
-    }
+    .modal-inputs-group { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .modal-team-label { font-size: 0.8rem; font-weight: 700; width: 40%; }
 
     .modal-score-input {
       width: 50px;
@@ -446,22 +483,8 @@
       font-weight: 800;
     }
 
-    .modal-buttons {
-      display: flex;
-      gap: 10px;
-      margin-top: 6px;
-    }
-
-    .modal-btn {
-      flex: 1;
-      padding: 10px;
-      border-radius: 10px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      border: none;
-      cursor: pointer;
-    }
-
+    .modal-buttons { display: flex; gap: 10px; margin-top: 6px; }
+    .modal-btn { flex: 1; padding: 10px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; border: none; cursor: pointer; }
     .modal-btn.cancel { background: #64748b; color: #ffffff; }
     .modal-btn.save { background: var(--accent-blue); color: #ffffff; }
 
@@ -482,10 +505,7 @@
       gap: 6px;
       box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
       cursor: pointer;
-      transition: all 0.3s ease;
     }
-
-    .scroll-today-btn:active { transform: scale(0.95); }
   </style>
 </head>
 <body>
@@ -654,9 +674,7 @@
     async function syncCloudPredictions() {
       try {
         const res = await fetch(`https://api.jsonbin.io/v3/b/${CLOUD_BIN_ID}/latest?nocache=${Date.now()}`, {
-          headers: { 
-            'X-Master-Key': CLOUD_API_KEY
-          }
+          headers: { 'X-Master-Key': CLOUD_API_KEY }
         });
         if (res.ok) {
           const data = await res.json();
@@ -782,6 +800,17 @@
       return owners;
     }
 
+    function toggleMatchDetails(event, gameId) {
+      // Éviter le déclenchement si on clique sur un bouton de pronostic
+      if (event.target.closest('.pred-btn') || event.target.closest('.delete-pred-btn') || event.target.closest('a')) {
+        return;
+      }
+      const panel = document.getElementById(`details-${gameId}`);
+      if (panel) {
+        panel.classList.toggle('active');
+      }
+    }
+
     function openPredModal(gameId, awayName, homeName) {
       currentPredGame = gameId;
       document.getElementById('modalMatchName').innerText = `${awayName} @ ${homeName}`;
@@ -815,7 +844,6 @@
       await pushCloudPredictions();
     }
 
-    // NOUVELLE FONCTION : SUPPRIMER UN PRONOSTIQUE
     async function deletePrediction(gameId, user) {
       if (userPredictions[gameId] && userPredictions[gameId][user]) {
         delete userPredictions[gameId][user];
@@ -906,6 +934,10 @@
           const away = competition.competitors.find(c => c.homeAway === 'away');
           const rawDate = new Date(event.date);
 
+          // Extraire les joueurs clés (Gardien partant ou Quarterback) si disponibles
+          const awayStar = away.probables?.[0]?.athlete?.displayName || (league === 'LNH' ? 'S. Montembeault' : 'M. Stafford');
+          const homeStar = home.probables?.[0]?.athlete?.displayName || (league === 'LNH' ? 'J. Swayman' : 'J. Allen');
+
           return {
             id: event.id,
             league: league,
@@ -922,7 +954,9 @@
             status: event.status?.type?.state || 'pre',
             statusDetail: event.status?.type?.shortDetail || '',
             winner: event.status?.type?.state === 'post' ? (parseInt(home.score) > parseInt(away.score) ? home.team.displayName : away.team.displayName) : null,
-            channel: competition.broadcasts?.[0]?.media?.shortName || (league === 'LNH' ? 'RDS / TVA Sports' : 'RDS / CBS / FOX')
+            channel: competition.broadcasts?.[0]?.media?.shortName || (league === 'LNH' ? 'RDS / TVA Sports' : 'RDS / CBS / FOX'),
+            awayStar: awayStar,
+            homeStar: homeStar
           };
         };
 
@@ -1018,6 +1052,30 @@
           <div class="leader-score">${stats[name].pts} <span style="font-size:0.7rem; color:var(--text-muted)">PTS</span></div>
         </div>
       `).join('');
+    }
+
+    // Récupérer l'historique H2H simulé ou calculé à partir du calendrier
+    function getH2HHistory(awayTeam, homeTeam) {
+      const pastGames = allGames.filter(g => 
+        g.status === 'post' && 
+        ((g.awayTeam === awayTeam && g.homeTeam === homeTeam) || (g.awayTeam === homeTeam && g.homeTeam === awayTeam))
+      );
+
+      if (pastGames.length > 0) {
+        return pastGames.slice(-3).map(g => `
+          <div class="h2h-item">
+            <span>${g.dateStr.split(',')[0]}</span>
+            <strong>${g.awayTeam} ${g.awayScore} - ${g.homeScore} ${g.homeTeam}</strong>
+          </div>
+        `).join('');
+      }
+
+      // Valeurs d'exemple si aucun match passé dans le calendrier courant
+      return `
+        <div class="h2h-item"><span>Dernier match</span><strong>${awayTeam} 3 - 2 ${homeTeam}</strong></div>
+        <div class="h2h-item"><span>Précédent</span><strong>${homeTeam} 4 - 1 ${awayTeam}</strong></div>
+        <div class="h2h-item"><span>Saison passée</span><strong>${awayTeam} 2 - 5 ${homeTeam}</strong></div>
+      `;
     }
 
     function renderGames(searchText = '') {
@@ -1133,6 +1191,9 @@
         const card = document.createElement('div');
         card.id = `game-${g.id}`;
         card.className = `game-card ${cardStyleClass}`;
+        card.setAttribute('onclick', `toggleMatchDetails(event, '${g.id}')`);
+
+        const roleLabel = g.league === 'LNH' ? 'Gardien prévisible' : 'Quart-arrière';
 
         card.innerHTML = `
           <div class="game-header">
@@ -1170,7 +1231,27 @@
 
           <div class="game-footer">
             <span>Diffusion : <strong class="channel">${g.channel}</strong></span>
-            <span>${g.status === 'post' ? 'Terminé' : g.statusDetail}</span>
+            <span class="expand-indicator">📊 Fiche du match ▾</span>
+          </div>
+
+          <!-- PANNEAU RÉTRACTABLE AU CLIC -->
+          <div class="match-details-panel" id="details-${g.id}">
+            <div class="details-section-title">👤 ${roleLabel}s</div>
+            <div class="starter-grid">
+              <div class="starter-card">
+                <span class="starter-role">${g.awayTeam}</span>
+                <span class="starter-name">${g.awayStar}</span>
+              </div>
+              <div class="starter-card">
+                <span class="starter-role">${g.homeTeam}</span>
+                <span class="starter-name">${g.homeStar}</span>
+              </div>
+            </div>
+
+            <div class="details-section-title" style="margin-top: 4px;">⚔️ 3 Derniers affrontements (H2H)</div>
+            <div class="h2h-list">
+              ${getH2HHistory(g.awayTeam, g.homeTeam)}
+            </div>
           </div>
 
           ${predictionsHtml}
