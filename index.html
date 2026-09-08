@@ -338,7 +338,7 @@
 
     .starter-role { font-size: 0.65rem; color: var(--text-muted); font-weight: 700; }
     .starter-name { font-weight: 700; color: var(--text-main); }
-    .starter-stats { font-size: 0.68rem; color: var(--accent-blue); }
+    .starter-none { color: var(--accent-red); font-weight: 800; font-size: 0.75rem; }
 
     .h2h-list { display: flex; flex-direction: column; gap: 4px; }
     .h2h-item {
@@ -630,6 +630,9 @@
     let hideFinished = false;
     let userPredictions = {};
     let currentPredGame = null;
+    
+    // Suivi explicite des fiches ouvertes par l'utilisateur
+    const openDetailsPanels = new Set();
 
     function toggleSettings() {
       const panel = document.getElementById('settingsPanel');
@@ -800,14 +803,20 @@
       return owners;
     }
 
+    // POINT 1 FIXÉ : Bascule manuelle préservée entre les mises à jour
     function toggleMatchDetails(event, gameId) {
-      // Éviter le déclenchement si on clique sur un bouton de pronostic
       if (event.target.closest('.pred-btn') || event.target.closest('.delete-pred-btn') || event.target.closest('a')) {
         return;
       }
       const panel = document.getElementById(`details-${gameId}`);
       if (panel) {
-        panel.classList.toggle('active');
+        if (openDetailsPanels.has(gameId)) {
+          openDetailsPanels.delete(gameId);
+          panel.classList.remove('active');
+        } else {
+          openDetailsPanels.add(gameId);
+          panel.classList.add('active');
+        }
       }
     }
 
@@ -934,9 +943,9 @@
           const away = competition.competitors.find(c => c.homeAway === 'away');
           const rawDate = new Date(event.date);
 
-          // Extraire les joueurs clés (Gardien partant ou Quarterback) si disponibles
-          const awayStar = away.probables?.[0]?.athlete?.displayName || (league === 'LNH' ? 'S. Montembeault' : 'M. Stafford');
-          const homeStar = home.probables?.[0]?.athlete?.displayName || (league === 'LNH' ? 'J. Swayman' : 'J. Allen');
+          // POINT 2 FIXÉ : Extraction exacte ou N/D sans valeurs codées en dur
+          const awayStar = away.probables?.[0]?.athlete?.displayName || null;
+          const homeStar = home.probables?.[0]?.athlete?.displayName || null;
 
           return {
             id: event.id,
@@ -1054,11 +1063,14 @@
       `).join('');
     }
 
-    // Récupérer l'historique H2H simulé ou calculé à partir du calendrier
+    // POINT 3 FIXÉ : Filtrage strict sur les équipes réelles et résultats validés
     function getH2HHistory(awayTeam, homeTeam) {
       const pastGames = allGames.filter(g => 
         g.status === 'post' && 
-        ((g.awayTeam === awayTeam && g.homeTeam === homeTeam) || (g.awayTeam === homeTeam && g.homeTeam === awayTeam))
+        (
+          (g.awayTeam.toLowerCase() === awayTeam.toLowerCase() && g.homeTeam.toLowerCase() === homeTeam.toLowerCase()) || 
+          (g.awayTeam.toLowerCase() === homeTeam.toLowerCase() && g.homeTeam.toLowerCase() === awayTeam.toLowerCase())
+        )
       );
 
       if (pastGames.length > 0) {
@@ -1070,12 +1082,7 @@
         `).join('');
       }
 
-      // Valeurs d'exemple si aucun match passé dans le calendrier courant
-      return `
-        <div class="h2h-item"><span>Dernier match</span><strong>${awayTeam} 3 - 2 ${homeTeam}</strong></div>
-        <div class="h2h-item"><span>Précédent</span><strong>${homeTeam} 4 - 1 ${awayTeam}</strong></div>
-        <div class="h2h-item"><span>Saison passée</span><strong>${awayTeam} 2 - 5 ${homeTeam}</strong></div>
-      `;
+      return `<div class="h2h-item"><span style="color:var(--text-muted);">Aucun affrontement antérieur enregistré dans cette saison.</span></div>`;
     }
 
     function renderGames(searchText = '') {
@@ -1194,6 +1201,13 @@
         card.setAttribute('onclick', `toggleMatchDetails(event, '${g.id}')`);
 
         const roleLabel = g.league === 'LNH' ? 'Gardien prévisible' : 'Quart-arrière';
+        
+        // Formatage N/D si absent
+        const awayStarDisplay = g.awayStar ? `<span class="starter-name">${g.awayStar}</span>` : `<span class="starter-none">N/D</span>`;
+        const homeStarDisplay = g.homeStar ? `<span class="starter-name">${g.homeStar}</span>` : `<span class="starter-none">N/D</span>`;
+
+        // Conservation de l'état ouvert/fermé de la fiche
+        const isPanelOpen = openDetailsPanels.has(g.id);
 
         card.innerHTML = `
           <div class="game-header">
@@ -1234,17 +1248,16 @@
             <span class="expand-indicator">📊 Fiche du match ▾</span>
           </div>
 
-          <!-- PANNEAU RÉTRACTABLE AU CLIC -->
-          <div class="match-details-panel" id="details-${g.id}">
+          <div class="match-details-panel ${isPanelOpen ? 'active' : ''}" id="details-${g.id}">
             <div class="details-section-title">👤 ${roleLabel}s</div>
             <div class="starter-grid">
               <div class="starter-card">
                 <span class="starter-role">${g.awayTeam}</span>
-                <span class="starter-name">${g.awayStar}</span>
+                ${awayStarDisplay}
               </div>
               <div class="starter-card">
                 <span class="starter-role">${g.homeTeam}</span>
-                <span class="starter-name">${g.homeStar}</span>
+                ${homeStarDisplay}
               </div>
             </div>
 
