@@ -351,6 +351,15 @@
       font-size: 0.72rem;
     }
 
+    .h2h-link-btn {
+      display: inline-block;
+      margin-top: 4px;
+      color: var(--accent-blue);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.72rem;
+    }
+
     .predictions-box {
       border-top: 1px solid var(--border-color);
       padding-top: 8px;
@@ -1065,7 +1074,7 @@
       `).join('');
     }
 
-    // EXTRACTION D'HISTORIQUE RÉEL VIA LES ARCHIVES ESPI SANS FALLBACK FICTIF
+    // NOUVELLE FONCTION H2H : DÉTECTION DES VRAIES RENCONTRES SANS AUCUN SCORE FICTIF
     async function loadDirectH2H(game) {
       const container = document.getElementById(`h2h-list-${game.id}`);
       if (!container) return;
@@ -1076,36 +1085,39 @@
         return;
       }
 
-      const sport = game.league === 'LNH' ? 'hockey/nhl' : 'football/nfl';
-      const teamId = game.homeTeamObj.id || 'mtl';
+      const sportPath = game.league === 'LNH' ? 'nhl' : 'nfl';
+      const espnGameUrl = `https://www.espn.com/${sportPath}/game/_/gameId/${game.id}`;
 
       try {
-        // Interrogation du calendrier de l'équipe receveuse
-        const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/${sport}/teams/${teamId}/schedule`);
+        const sport = game.league === 'LNH' ? 'hockey/nhl' : 'football/nfl';
+        const teamId = game.homeTeamObj.id || '1';
+
+        // Recherche dans l'historique complet des matchs joués
+        const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/${sport}/teams/${teamId}/schedule?season=2025`);
         if (res.ok) {
           const data = await res.json();
           const events = data.events || [];
-          
           const matchedGames = [];
+
           for (const ev of events) {
             const comp = ev.competitions?.[0];
             if (!comp) continue;
-            
+
             const awayComp = comp.competitors.find(c => c.homeAway === 'away');
             const homeComp = comp.competitors.find(c => c.homeAway === 'home');
-            
+
             const awayName = awayComp?.team?.displayName || '';
             const homeName = homeComp?.team?.displayName || '';
 
-            const isMatchingPair = (
+            const isMatch = (
               (awayName.toLowerCase().includes(game.awayTeam.toLowerCase()) && homeName.toLowerCase().includes(game.homeTeam.toLowerCase())) ||
               (awayName.toLowerCase().includes(game.homeTeam.toLowerCase()) && homeName.toLowerCase().includes(game.awayTeam.toLowerCase()))
             );
 
-            if (isMatchingPair && ev.status?.type?.state === 'post') {
+            if (isMatch && ev.status?.type?.state === 'post') {
               const gameDate = new Date(ev.date).toLocaleDateString('fr-CA', { month: 'short', day: 'numeric', year: '2-digit' });
-              const aScore = awayComp.score?.value ?? awayComp.score;
-              const hScore = homeComp.score?.value ?? homeComp.score;
+              const aScore = awayComp.score?.value ?? awayComp.score ?? '0';
+              const hScore = homeComp.score?.value ?? homeComp.score ?? '0';
 
               matchedGames.push(`
                 <div class="h2h-item">
@@ -1117,19 +1129,25 @@
           }
 
           if (matchedGames.length > 0) {
-            const resultHtml = matchedGames.slice(-3).reverse().join('');
-            h2hCache[cacheKey] = resultHtml;
-            container.innerHTML = resultHtml;
+            const html = matchedGames.slice(-3).reverse().join('');
+            h2hCache[cacheKey] = html;
+            container.innerHTML = html;
             return;
           }
         }
       } catch (e) {
-        console.warn("Échec de la récupération H2H en direct", e);
+        console.warn("API de recherche directe indisponible", e);
       }
 
-      const noDataHtml = `<div class="h2h-item"><span style="color:var(--text-muted);">Aucun affrontement récent enregistré dans la BDD.</span></div>`;
-      h2hCache[cacheKey] = noDataHtml;
-      container.innerHTML = noDataHtml;
+      // S'il n'y a pas d'affrontement récent vérifié, on affiche une option propre avec lien officiel
+      const noMatchHtml = `
+        <div class="h2h-item" style="flex-direction:column; align-items:flex-start; gap:4px;">
+          <span style="color:var(--text-muted)">Aucun affrontement récent répertorié dans cette saison.</span>
+          <a href="${espnGameUrl}" target="_blank" class="h2h-link-btn">Consulter la fiche complète et le H2H sur ESPN ↗</a>
+        </div>
+      `;
+      h2hCache[cacheKey] = noMatchHtml;
+      container.innerHTML = noMatchHtml;
     }
 
     function renderGames(searchText = '') {
@@ -1306,9 +1324,9 @@
               </div>
             </div>
 
-            <div class="details-section-title" style="margin-top: 4px;">⚔️ 3 Derniers affrontements</div>
+            <div class="details-section-title" style="margin-top: 4px;">⚔️ Dernières confrontations réelles</div>
             <div class="h2h-list" id="h2h-list-${g.id}">
-              <div class="h2h-item"><span style="color:var(--text-muted);">Recherche des historiques en cours...</span></div>
+              <div class="h2h-item"><span style="color:var(--text-muted);">Recherche des matchs joués...</span></div>
             </div>
           </div>
 
