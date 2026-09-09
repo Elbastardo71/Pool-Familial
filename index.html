@@ -7,16 +7,18 @@
   <!-- CDN Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { font-family: -apple-system, sans-serif; background: #0b0f19; color: white; padding: 20px; display: flex; justify-content: center; }
-    .card { background: #1e293b; padding: 24px; border-radius: 16px; border: 1px solid #334155; max-width: 400px; width: 100%; text-align: center; }
-    input, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
+    body { font-family: -apple-system, sans-serif; background: #0b0f19; color: white; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+    .card { background: #1e293b; padding: 24px; border-radius: 16px; border: 1px solid #334155; max-width: 400px; width: 100%; text-align: center; margin-bottom: 12px; }
+    input, button, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
     button { background: #38bdf8; font-weight: bold; cursor: pointer; border: none; }
     .hidden { display: none; }
     .qr-box { background: white; padding: 12px; border-radius: 12px; display: inline-block; margin-top: 10px; }
+    #log-message { color: #fbbf24; font-size: 0.85rem; margin-top: 10px; word-break: break-all; }
   </style>
 </head>
 <body>
 
+  <!-- CARTE D'AUTHENTIFICATION -->
   <div class="card" id="auth-card">
     <h2>⚡ FanZone Pro</h2>
     <p>Connexion / Inscription</p>
@@ -25,8 +27,10 @@
     <input type="password" id="password" placeholder="Mot de passe">
     <button onclick="handleRegister()">S'inscrire</button>
     <button onclick="handleLogin()" style="background:#64748b; margin-top:4px;">Se connecter</button>
+    <div id="log-message"></div>
   </div>
 
+  <!-- CARTE TABLEAU DE BORD -->
   <div class="card hidden" id="dashboard-card">
     <h2>🏆 Tableau de bord FanZone Pro</h2>
     <p id="user-info"></p>
@@ -35,7 +39,7 @@
     
     <h3>Créer un pool en 2 min</h3>
     <input type="text" id="pool-name" placeholder="Nom de votre pool (ex: Famille 2026)">
-    <select id="sport-select" style="width:100%; padding:12px; background:#0f172a; color:white; border-radius:8px; margin-bottom:8px;">
+    <select id="sport-select">
       <option value="NFL">🏈 NFL Football</option>
       <option value="NHL">🏒 LNH Hockey</option>
       <option value="NBA">🏀 NBA Basketball</option>
@@ -55,42 +59,68 @@
   </div>
 
   <script>
-    // Configurer avec les clés de votre projet Supabase Dashboard > Settings > API
-    const SUPABASE_URL = https://zwifukqufnitamolqmwd.supabase.co/rest/v1/;
-    const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3aWZ1a3F1Zm5pdGFtb2xxbXdkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5NzQ0MTQsImV4cCI6MjEwNDU1MDQxNH0.ZK4WM64AyHK7HgrLo1HmVutUYZInP1fg_hsCY4PWdeo;
+    // URL fournie (nettoyée automatiquement pour conserver la racine requise par le SDK)
+    const RAW_SUPABASE_URL = 'https://zwifukqufnitamolqmwd.supabase.co/rest/v1/';
+    const SUPABASE_URL = RAW_SUPABASE_URL.replace(/\/rest\/v1\/?$/, ''); // Extrait 'https://zwifukqufnitamolqmwd.supabase.co'
 
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Clé publique JWT d'accès Anonyme
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3aWZ1a3F1Zm5pdGFtb2xxbXdkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5NzQ0MTQsImV4cCI6MjEwNDU1MDQxNH0.ZK4WM64AyHK7HgrLo1HmVutUYZInP1fg_hsCY4PWdeo';
+
+    // Initialisation du client Supabase
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    function showLog(msg, isError = false) {
+      const logEl = document.getElementById('log-message');
+      logEl.style.color = isError ? '#ef4444' : '#fbbf24';
+      logEl.innerText = msg;
+    }
 
     async function handleRegister() {
-      const email = document.getElementById('email').value;
+      showLog("Inscription en cours...");
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
-      const username = document.getElementById('username').value;
+      const username = document.getElementById('username').value.trim();
 
-      const { data, error } = await supabase.auth.signUp({
+      if (!email || !password || !username) {
+        showLog("Veuillez remplir tous les champs.", true);
+        return;
+      }
+
+      const { data, error } = await supabaseClient.auth.signUp({
         email,
         password,
         options: { data: { username } }
       });
 
-      if (error) alert("Erreur : " + error.message);
-      else {
-        alert("Inscription réussie ! Vous êtes connecté.");
+      if (error) {
+        showLog("Erreur inscription : " + error.message, true);
+      } else {
+        showLog("Inscription réussie ! Connexion...");
         checkSession();
       }
     }
 
     async function handleLogin() {
-      const email = document.getElementById('email').value;
+      showLog("Connexion en cours...");
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
 
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (!email || !password) {
+        showLog("Entrez votre courriel et mot de passe.", true);
+        return;
+      }
 
-      if (error) alert("Erreur : " + error.message);
-      else checkSession();
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        showLog("Erreur connexion : " + error.message, true);
+      } else {
+        checkSession();
+      }
     }
 
     async function checkSession() {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabaseClient.auth.getSession();
       if (session) {
         document.getElementById('auth-card').classList.add('hidden');
         document.getElementById('dashboard-card').classList.remove('hidden');
@@ -99,30 +129,35 @@
     }
 
     async function createPool() {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabaseClient.auth.getSession();
       const name = document.getElementById('pool-name').value;
       const sport_id = document.getElementById('sport-select').value;
 
+      if (!name) {
+        alert("Veuillez donner un nom à votre pool.");
+        return;
+      }
+
       const join_code = Math.random().toString(36).substring(2, 8).toUpperCase();
 
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('private_pools')
         .insert([{ admin_id: session.user.id, name, sport_id, join_code }])
         .select();
 
-      if (error) alert("Erreur de création : " + error.message);
-      else {
+      if (error) {
+        alert("Erreur de création : " + error.message);
+      } else {
         document.getElementById('pool-result').classList.remove('hidden');
         document.getElementById('pool-code').innerText = join_code;
         
-        // Génération automatique du QR Code via API d'image
         const joinUrl = window.location.origin + '?join=' + join_code;
         document.getElementById('qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(joinUrl)}`;
       }
     }
 
     async function handleLogout() {
-      await supabase.auth.signOut();
+      await supabaseClient.auth.signOut();
       location.reload();
     }
 
