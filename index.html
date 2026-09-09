@@ -339,27 +339,6 @@
     .starter-name { font-weight: 700; color: var(--text-main); }
     .starter-none { color: var(--accent-red); font-weight: 800; font-size: 0.75rem; }
 
-    .h2h-list { display: flex; flex-direction: column; gap: 4px; }
-    .h2h-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: var(--input-bg);
-      padding: 6px 10px;
-      border-radius: 6px;
-      border: 1px solid var(--border-color);
-      font-size: 0.72rem;
-    }
-
-    .h2h-link-btn {
-      display: inline-block;
-      margin-top: 4px;
-      color: var(--accent-blue);
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 0.72rem;
-    }
-
     .predictions-box {
       border-top: 1px solid var(--border-color);
       padding-top: 8px;
@@ -640,26 +619,7 @@
     let currentPredGame = null;
     
     const openDetailsPanels = new Set();
-    const h2hCache = {};
-
-    // BASE DE DONNÉES VERIFIÉE DES DERNERS MATCHS RÉELS (49ers vs Rams & équipes clés du pool)
-    const KNOWN_H2H_RESULTS = {
-      "49ers_rams": [
-        { date: "09 nov. 2025", score: "Los Angeles Rams 42 - 26 San Francisco 49ers" },
-        { date: "02 oct. 2025", score: "San Francisco 49ers 26 - 23 Los Angeles Rams" },
-        { date: "12 déc. 2024", score: "San Francisco 49ers 20 - 12 Los Angeles Rams" }
-      ],
-      "bills_patriots": [
-        { date: "22 déc. 2025", score: "Buffalo Bills 24 - 17 New England Patriots" },
-        { date: "05 oct. 2025", score: "New England Patriots 10 - 28 Buffalo Bills" },
-        { date: "22 déc. 2024", score: "Buffalo Bills 24 - 21 New England Patriots" }
-      ],
-      "chiefs_raiders": [
-        { date: "04 janv. 2026", score: "Las Vegas Raiders 14 - 12 Kansas City Chiefs" },
-        { date: "19 oct. 2025", score: "Kansas City Chiefs 31 - 17 Las Vegas Raiders" },
-        { date: "29 nov. 2024", score: "Kansas City Chiefs 19 - 17 Las Vegas Raiders" }
-      ]
-    };
+    const startersCache = {};
 
     function toggleSettings() {
       const panel = document.getElementById('settingsPanel');
@@ -845,7 +805,7 @@
           
           const gameObj = allGames.find(g => g.id === gameId);
           if (gameObj) {
-            loadDirectH2H(gameObj);
+            fetchLiveStarters(gameObj);
           }
         }
       }
@@ -1093,51 +1053,44 @@
       `).join('');
     }
 
-    // FONCTION H2H SÉCURISÉE AVEC VRAIS RÉSULTATS GARANTIS
-    async function loadDirectH2H(game) {
-      const container = document.getElementById(`h2h-list-${game.id}`);
-      if (!container) return;
+    // EXTRACTION EN DIRECT DE L'ORGANIGRAMME (DEPTH CHART) QUAND POK/FOX EST ANNONCÉ
+    async function fetchLiveStarters(game) {
+      const awayEl = document.getElementById(`starter-away-${game.id}`);
+      const homeEl = document.getElementById(`starter-home-${game.id}`);
 
-      const cacheKey = `${game.id}_h2h`;
-      if (h2hCache[cacheKey]) {
-        container.innerHTML = h2hCache[cacheKey];
+      if (!awayEl || !homeEl) return;
+
+      const cacheKey = `${game.id}_starters`;
+      if (startersCache[cacheKey]) {
+        awayEl.innerHTML = startersCache[cacheKey].away;
+        homeEl.innerHTML = startersCache[cacheKey].home;
         return;
       }
 
-      const sportPath = game.league === 'LNH' ? 'nhl' : 'nfl';
-      const espnGameUrl = `https://www.espn.com/${sportPath}/game/_/gameId/${game.id}`;
+      if (game.league === 'NFL') {
+        const fetchTeamStarter = async (teamId) => {
+          try {
+            const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/${teamId}/depthcharts`);
+            if (res.ok) {
+              const data = await res.json();
+              const qbPosition = data.depthcharts?.[0]?.positions?.qb || data.depthcharts?.[0]?.items?.find(i => i.position?.abbreviation === 'QB');
+              if (qbPosition && qbPosition.athletes && qbPosition.athletes.length > 0) {
+                return `<span class="starter-name">${qbPosition.athletes[0].athlete.displayName}</span>`;
+              }
+            }
+          } catch (e) {
+            console.warn("Échec depth chart", e);
+          }
+          return `<span class="starter-none">N/D</span>`;
+        };
 
-      // 1. Détection des paires clés connues dans la BDD locale vérifiée
-      let matchedKey = null;
-      if (game.awayTeam.includes("49ers") || game.homeTeam.includes("49ers")) {
-        if (game.awayTeam.includes("Rams") || game.homeTeam.includes("Rams")) matchedKey = "49ers_rams";
-      } else if (game.awayTeam.includes("Bills") || game.homeTeam.includes("Bills")) {
-        if (game.awayTeam.includes("Patriots") || game.homeTeam.includes("Patriots")) matchedKey = "bills_patriots";
-      } else if (game.awayTeam.includes("Chiefs") || game.homeTeam.includes("Chiefs")) {
-        if (game.awayTeam.includes("Raiders") || game.homeTeam.includes("Raiders")) matchedKey = "chiefs_raiders";
+        const awayStarter = game.awayStar ? `<span class="starter-name">${game.awayStar}</span>` : await fetchTeamStarter(game.awayTeamObj.id);
+        const homeStarter = game.homeStar ? `<span class="starter-name">${game.homeStar}</span>` : await fetchTeamStarter(game.homeTeamObj.id);
+
+        startersCache[cacheKey] = { away: awayStarter, home: homeStarter };
+        awayEl.innerHTML = awayStarter;
+        homeEl.innerHTML = homeStarter;
       }
-
-      if (matchedKey && KNOWN_H2H_RESULTS[matchedKey]) {
-        const items = KNOWN_H2H_RESULTS[matchedKey].map(item => `
-          <div class="h2h-item">
-            <span>${item.date}</span>
-            <strong>${item.score}</strong>
-          </div>
-        `).join('');
-        h2hCache[cacheKey] = items;
-        container.innerHTML = items;
-        return;
-      }
-
-      // 2. Si non présent en local, on affiche la fiche directe ESPN
-      const directCardHtml = `
-        <div class="h2h-item" style="flex-direction:column; align-items:flex-start; gap:4px; padding: 10px;">
-          <span style="color:var(--text-muted)">Consulter la fiche H2H complète pour ce duel :</span>
-          <a href="${espnGameUrl}" target="_blank" class="h2h-link-btn">Voir l'historique complet sur ESPN ↗</a>
-        </div>
-      `;
-      h2hCache[cacheKey] = directCardHtml;
-      container.innerHTML = directCardHtml;
     }
 
     function renderGames(searchText = '') {
@@ -1257,8 +1210,8 @@
 
         const roleLabel = g.league === 'LNH' ? 'Gardien prévisible' : 'Quart-arrière';
         
-        const awayStarDisplay = g.awayStar ? `<span class="starter-name">${g.awayStar}</span>` : `<span class="starter-none">N/D</span>`;
-        const homeStarDisplay = g.homeStar ? `<span class="starter-name">${g.homeStar}</span>` : `<span class="starter-none">N/D</span>`;
+        const awayStarDisplay = g.awayStar ? `<span class="starter-name">${g.awayStar}</span>` : `<span class="starter-none">Recherche...</span>`;
+        const homeStarDisplay = g.homeStar ? `<span class="starter-name">${g.homeStar}</span>` : `<span class="starter-none">Recherche...</span>`;
 
         const isPanelOpen = openDetailsPanels.has(g.id);
 
@@ -1298,25 +1251,20 @@
 
           <div class="game-footer">
             <span>Diffusion : <strong class="channel">${g.channel}</strong></span>
-            <span class="expand-indicator">📊 Fiche du match ▾</span>
+            <span class="expand-indicator">📊 Alignements ▾</span>
           </div>
 
           <div class="match-details-panel ${isPanelOpen ? 'active' : ''}" id="details-${g.id}">
-            <div class="details-section-title">👤 ${roleLabel}s</div>
+            <div class="details-section-title">👤 ${roleLabel}s Partants</div>
             <div class="starter-grid">
               <div class="starter-card">
                 <span class="starter-role">${g.awayTeam}</span>
-                ${awayStarDisplay}
+                <div id="starter-away-${g.id}">${awayStarDisplay}</div>
               </div>
               <div class="starter-card">
                 <span class="starter-role">${g.homeTeam}</span>
-                ${homeStarDisplay}
+                <div id="starter-home-${g.id}">${homeStarDisplay}</div>
               </div>
-            </div>
-
-            <div class="details-section-title" style="margin-top: 4px;">⚔️ 3 Derniers affrontements réels</div>
-            <div class="h2h-list" id="h2h-list-${g.id}">
-              <div class="h2h-item"><span style="color:var(--text-muted);">Recherche des historiques...</span></div>
             </div>
           </div>
 
@@ -1325,7 +1273,7 @@
         container.appendChild(card);
 
         if (isPanelOpen) {
-          loadDirectH2H(g);
+          fetchLiveStarters(g);
         }
       });
 
