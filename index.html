@@ -1065,7 +1065,7 @@
       `).join('');
     }
 
-    // EXTRACTION ET FORMATAGE DE L'HISTORIQUE SANS RESTRICTION DE SPORT OU DE SAISON
+    // EXTRACTION D'HISTORIQUE RÉEL VIA LES ARCHIVES ESPI SANS FALLBACK FICTIF
     async function loadDirectH2H(game) {
       const container = document.getElementById(`h2h-list-${game.id}`);
       if (!container) return;
@@ -1077,51 +1077,59 @@
       }
 
       const sport = game.league === 'LNH' ? 'hockey/nhl' : 'football/nfl';
+      const teamId = game.homeTeamObj.id || 'mtl';
 
       try {
-        const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/${sport}/summary?event=${game.id}`);
+        // Interrogation du calendrier de l'équipe receveuse
+        const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/${sport}/teams/${teamId}/schedule`);
         if (res.ok) {
           const data = await res.json();
-          const headToHead = data.headToHead || data.atVs;
+          const events = data.events || [];
           
-          if (headToHead && headToHead.length > 0) {
-            const items = headToHead.slice(0, 3).map(ev => {
-              const dateStr = ev.gameDate ? new Date(ev.gameDate).toLocaleDateString('fr-CA', { month: 'short', day: 'numeric', year: '2-digit' }) : 'Précédent';
-              return `
-                <div class="h2h-item">
-                  <span>${dateStr}</span>
-                  <strong>${ev.awayTeam?.shortDisplayName || game.awayTeam} ${ev.awayScore} - ${ev.homeScore} ${ev.homeTeam?.shortDisplayName || game.homeTeam}</strong>
-                </div>
-              `;
-            }).join('');
+          const matchedGames = [];
+          for (const ev of events) {
+            const comp = ev.competitions?.[0];
+            if (!comp) continue;
+            
+            const awayComp = comp.competitors.find(c => c.homeAway === 'away');
+            const homeComp = comp.competitors.find(c => c.homeAway === 'home');
+            
+            const awayName = awayComp?.team?.displayName || '';
+            const homeName = homeComp?.team?.displayName || '';
 
-            h2hCache[cacheKey] = items;
-            container.innerHTML = items;
+            const isMatchingPair = (
+              (awayName.toLowerCase().includes(game.awayTeam.toLowerCase()) && homeName.toLowerCase().includes(game.homeTeam.toLowerCase())) ||
+              (awayName.toLowerCase().includes(game.homeTeam.toLowerCase()) && homeName.toLowerCase().includes(game.awayTeam.toLowerCase()))
+            );
+
+            if (isMatchingPair && ev.status?.type?.state === 'post') {
+              const gameDate = new Date(ev.date).toLocaleDateString('fr-CA', { month: 'short', day: 'numeric', year: '2-digit' });
+              const aScore = awayComp.score?.value ?? awayComp.score;
+              const hScore = homeComp.score?.value ?? homeComp.score;
+
+              matchedGames.push(`
+                <div class="h2h-item">
+                  <span>${gameDate}</span>
+                  <strong>${awayName} ${aScore} - ${hScore} ${homeName}</strong>
+                </div>
+              `);
+            }
+          }
+
+          if (matchedGames.length > 0) {
+            const resultHtml = matchedGames.slice(-3).reverse().join('');
+            h2hCache[cacheKey] = resultHtml;
+            container.innerHTML = resultHtml;
             return;
           }
         }
       } catch (e) {
-        console.warn("Échec du chargement du summary ESPN H2H");
+        console.warn("Échec de la récupération H2H en direct", e);
       }
 
-      // CORRECTION DU FALLBACK ADAPTÉ AU SPORT CONCERNÉ
-      let fallbackHtml = '';
-      if (game.league === 'NFL') {
-        fallbackHtml = `
-          <div class="h2h-item"><span>Dernière rencontre</span><strong>${game.awayTeam} 27 - 24 ${game.homeTeam}</strong></div>
-          <div class="h2h-item"><span>Confrontation #2</span><strong>${game.homeTeam} 31 - 20 ${game.awayTeam}</strong></div>
-          <div class="h2h-item"><span>Confrontation #3</span><strong>${game.awayTeam} 17 - 14 ${game.homeTeam}</strong></div>
-        `;
-      } else {
-        fallbackHtml = `
-          <div class="h2h-item"><span>Dernière rencontre</span><strong>${game.awayTeam} 3 - 2 ${game.homeTeam}</strong></div>
-          <div class="h2h-item"><span>Confrontation #2</span><strong>${game.homeTeam} 4 - 1 ${game.awayTeam}</strong></div>
-          <div class="h2h-item"><span>Confrontation #3</span><strong>${game.awayTeam} 2 - 5 ${game.homeTeam}</strong></div>
-        `;
-      }
-
-      h2hCache[cacheKey] = fallbackHtml;
-      container.innerHTML = fallbackHtml;
+      const noDataHtml = `<div class="h2h-item"><span style="color:var(--text-muted);">Aucun affrontement récent enregistré dans la BDD.</span></div>`;
+      h2hCache[cacheKey] = noDataHtml;
+      container.innerHTML = noDataHtml;
     }
 
     function renderGames(searchText = '') {
@@ -1300,7 +1308,7 @@
 
             <div class="details-section-title" style="margin-top: 4px;">⚔️ 3 Derniers affrontements</div>
             <div class="h2h-list" id="h2h-list-${g.id}">
-              <div class="h2h-item"><span style="color:var(--text-muted);">Chargement de l'historique...</span></div>
+              <div class="h2h-item"><span style="color:var(--text-muted);">Recherche des historiques en cours...</span></div>
             </div>
           </div>
 
